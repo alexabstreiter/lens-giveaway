@@ -16,6 +16,8 @@ contract LensHub {
 
 contract MetaSnap {
 
+    event SendPrize(address indexed _from, address indexed _to, uint256 _value);
+
     LensHub _lensHub;
     mapping(uint256 => Giveaway[]) _giveaways;
 
@@ -31,8 +33,6 @@ contract MetaSnap {
         _lensHub = LensHub(watch_addr);
         console.log('constructor');
         interact();
-        createGiveaway(1, 12);
-        createGiveaway(1, 13);
         console.log('constructor finsihed');
     }
 
@@ -47,9 +47,6 @@ contract MetaSnap {
             console.log(followNFT.ownerOf(i));
         }
         return follower;
-        //defaultProfile(address wallet)
-        //getHandle(uint256 profileId)
-        //getProfileIdByHandle(string calldata handle)
     }
 
     function getFollower(uint256 profileID) public view returns (address[] memory){
@@ -62,36 +59,36 @@ contract MetaSnap {
         return follower;
     }
 
-    function createGiveaway(uint256 profileID, uint256 amount) public returns (Giveaway[] memory) {
-        console.log('createGiveaway');
+    function createGiveaway(uint256 profileID) public payable returns (Giveaway memory) {
         address winner = _getRandomFollowerAddress(profileID);
-        console.log('createGiveaway2');
-        Giveaway memory giveaway = Giveaway(msg.sender, profileID, _giveaways[profileID].length, winner);
-        console.log('createGiveaway3');
+        address donor = msg.sender;
+        uint256 prize = msg.value;
+        Giveaway memory giveaway = Giveaway(donor, profileID, prize, winner);
+        // transfer amount to winner
+        console.log('balance');
+        console.log(address(winner).balance);
+        payable(address(winner)).transfer(prize);
+        emit SendPrize(donor, winner, prize);
+        console.log(address(winner).balance);
         _giveaways[profileID].push(giveaway);
-        console.log('createGiveaway4');
-        return _giveaways[profileID];
+        return giveaway;
     }
 
     function getProfileIdByHandle(string calldata handle) public view returns (uint256){
         return _lensHub.getProfileIdByHandle(handle);
     }
 
+    function getGiveaways(uint256 profileID) public returns (Giveaway[] memory) {
+        return _giveaways[profileID];
+    }
+
     function _getRandomFollowerAddress(uint256 profileID) private returns (address) {
-        console.log('_getRandomFollowerAddress');
         address watch_addr = 0x038B86d9d8FAFdd0a02ebd1A476432877b0107C8;
-        console.log('_getRandomFollowerAddress2');
         _lensHub = LensHub(watch_addr);
-        console.log('_getRandomFollowerAddress3');
         IERC721Enumerable followNFT = IERC721Enumerable(_lensHub.getFollowNFT(profileID));
-        console.log('_getRandomFollowerAddress4');
         uint256 totalSupply = followNFT.totalSupply();
-        console.log('_getRandomFollowerAddress5');
-        uint256 random_number = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
-        console.log('_getRandomFollowerAddress6');
-        console.log(random_number);
-        console.log(totalSupply);
-        uint256 winnerIndex = 1 + random_number % totalSupply;
+        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
+        uint256 winnerIndex = 1 + randomNumber % totalSupply;
         console.log(winnerIndex);
         return followNFT.ownerOf(winnerIndex);
     }
