@@ -58,7 +58,7 @@ function App() {
                         console.log('profileID: ' + _profileID);
                         const followerResult = await contract.methods.getFollower(_profileID).call();
                         console.log('followerResult: ' + followerResult);
-                        setFollower(Object.values(followerResult));
+                        setFollower([...new Set(Object.values(followerResult))]);
                         setHasRequestedResults(true);
                     }}
                 >

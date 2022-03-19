@@ -49,14 +49,41 @@ contract MetaSnap {
         return follower;
     }
 
-    function getFollower(uint256 profileID) public view returns (address[] memory){
+    function getFollower(uint256 profileID) public view returns (address[] memory follower){
         IERC721Enumerable followNFT = IERC721Enumerable(_lensHub.getFollowNFT(profileID));
         uint256 totalSupply = followNFT.totalSupply();
         address[] memory follower = new address[](totalSupply);
-        for (uint256 i = 1; i <= totalSupply; i++) {
-            follower[i - 1] = followNFT.ownerOf(i);
+        for (uint256 i = 0; i < totalSupply; i++) {
+            follower[i] = followNFT.ownerOf(i + 1);
         }
         return follower;
+    }
+
+    function getUniqueFollower(uint256 profileID) public view returns (address[] memory follower){
+        IERC721Enumerable followNFT = IERC721Enumerable(_lensHub.getFollowNFT(profileID));
+        uint256 totalSupply = followNFT.totalSupply();
+        address[] memory follower = new address[](totalSupply);
+        uint256 duplicateCounter = 0;
+        for (uint256 i = 0; i < totalSupply; i++) {
+            bool isDuplicate = false;
+            address followerAddress = followNFT.ownerOf(i + 1);
+            for (uint256 j = 0; j < i; i++) {
+                if (follower[j] == followerAddress) {
+                    isDuplicate = true;
+                    duplicateCounter++;
+                    break;
+                }
+            }
+            if (!isDuplicate) {
+                follower[i - duplicateCounter] = followerAddress;
+            }
+        }
+        uint256 nUniqueFollower = totalSupply - duplicateCounter;
+        address[] memory uniqueFollower = new address[](nUniqueFollower);
+        for (uint256 i = 0; i < nUniqueFollower; i++) {
+            uniqueFollower[i] = follower[i];
+        }
+        return uniqueFollower;
     }
 
     function createGiveaway(uint256 profileID) public payable returns (Giveaway memory) {
