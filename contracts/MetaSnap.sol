@@ -32,6 +32,7 @@ contract MetaSnap {
         console.log('constructor');
         interact();
         createGiveaway(1, 12);
+        createGiveaway(1, 13);
         console.log('constructor finsihed');
     }
 
@@ -61,15 +62,15 @@ contract MetaSnap {
         return follower;
     }
 
-    function createGiveaway(uint256 profileID, uint256 amount) public returns (Giveaway memory) {
+    function createGiveaway(uint256 profileID, uint256 amount) public returns (Giveaway[] memory) {
         console.log('createGiveaway');
         address winner = _getRandomFollowerAddress(profileID);
         console.log('createGiveaway2');
-        Giveaway memory giveaway = Giveaway(msg.sender, profileID, amount, winner);
+        Giveaway memory giveaway = Giveaway(msg.sender, profileID, _giveaways[profileID].length, winner);
         console.log('createGiveaway3');
         _giveaways[profileID].push(giveaway);
         console.log('createGiveaway4');
-        return giveaway;
+        return _giveaways[profileID];
     }
 
     function getProfileIdByHandle(string calldata handle) public view returns (uint256){
@@ -90,7 +91,9 @@ contract MetaSnap {
         console.log('_getRandomFollowerAddress6');
         console.log(random_number);
         console.log(totalSupply);
-        return followNFT.ownerOf(1 + random_number % totalSupply);
+        uint256 winnerIndex = 1 + random_number % totalSupply;
+        console.log(winnerIndex);
+        return followNFT.ownerOf(winnerIndex);
     }
 
 }

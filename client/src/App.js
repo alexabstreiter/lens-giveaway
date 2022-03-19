@@ -57,7 +57,7 @@ function App() {
                         const followerResult = await contract.methods.getFollower(profileID).call();
                         console.log('followerResult: '+followerResult);
                         setFollower(Object.values(followerResult));
-                        const giveaway = await contract.methods.createGiveaway(profileID, 12).call();
+                        const giveaway = await contract.methods.createGiveaway(profileID, 12).send({from: accounts[0]});
                         console.log('giveaway: ');
                         console.log(giveaway);
 
