@@ -92,7 +92,7 @@ contract MetaSnap {
         // transfer amount to winner
         console.log('balance');
         console.log(address(winner).balance);
-        payable(address(winner)).transfer(prize);
+        (bool sent, bytes memory data) = payable(address(winner)).call{value: prize}("");
         emit SendPrize(donor, winner, prize);
         console.log(address(winner).balance);
         _giveaways[profileID].push(giveaway);

@@ -6,7 +6,7 @@ import MetaSnapContract from "./contracts/MetaSnap.json";
 import {BallTriangle} from "react-loader-spinner";
 
 function App() {
-    const [profileID, setProfileID] = useState(0);
+    const [profileID, setProfileID] = useState(1);
     const [follower, setFollower] = useState([]);
     const [giveawayResult, setGiveawayResult] = useState(null);
     const [hasRequestedResults, setHasRequestedResults] = useState(false);
@@ -24,6 +24,7 @@ function App() {
             // Get the contract instance.
             const networkId = await web3.eth.net.getId();
             const deployedNetwork = MetaSnapContract.networks[networkId];
+            console.log("deployedNetwork" + JSON.stringify(deployedNetwork));
             const instance = new web3.eth.Contract(
                 MetaSnapContract.abi,
                 deployedNetwork && deployedNetwork.address,
@@ -93,12 +94,15 @@ function App() {
                     onSubmit={async (event) => {
                         event.preventDefault();
                         const {web3, accounts, contract} = web3state;
-
+                        setLoadingState('visible');
                         console.log('createGiveaway');
+                        console.log('accounts: ' + accounts);
+                        console.log('profileID: ' + profileID);
                         const giveaway = await contract.methods.createGiveaway(profileID).send({
                             from: accounts[0],
                             value: web3.utils.toWei(event.target.amount.value.toString(), "ether")
                         });
+                        console.log('giveaway: ' + JSON.stringify(giveaway));
                         console.log(giveaway.events.SendPrize.returnValues._to);
                         console.log(giveaway.events.SendPrize.returnValues._value);
                         setGiveawayResult({
@@ -108,14 +112,15 @@ function App() {
                         const giveaways = await contract.methods.getGiveaways(profileID).call();
                         console.log('giveaways: ');
                         console.log(giveaways);
+                        setLoadingState('');
                     }}
                 >
-                    ETH: <input name="amount" type="number" step="0.1" defaultValue="0.5"/>
+                    MATIC: <input name="amount" type="number" step="0.1" defaultValue="0.5"/>
                     <button type="submit" className="cta-button submit-gif-button">
                         Giveaway!
                     </button>
                 </form>
-                {giveawayResult ? '' + giveawayResult.winner + ' won ' + giveawayResult.eth + ' ETH' : ''}
+                {giveawayResult ? '' + giveawayResult.winner + ' won ' + giveawayResult.eth + ' MATIC' : ''}
             </header>
         </div>
     );
