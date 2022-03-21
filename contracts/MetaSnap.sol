@@ -29,11 +29,9 @@ contract MetaSnap {
     }
 
     constructor() public {
-        address watch_addr = 0x038B86d9d8FAFdd0a02ebd1A476432877b0107C8;
+        address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367; // lens hub proxy on mumbai testnet
         _lensHub = LensHub(watch_addr);
         console.log('constructor');
-        interact();
-        console.log('constructor finsihed');
     }
 
     function interact() public view returns (address[] memory){
@@ -110,8 +108,6 @@ contract MetaSnap {
     }
 
     function _getRandomFollowerAddress(uint256 profileID) private returns (address) {
-        address watch_addr = 0x038B86d9d8FAFdd0a02ebd1A476432877b0107C8;
-        _lensHub = LensHub(watch_addr);
         IERC721Enumerable followNFT = IERC721Enumerable(_lensHub.getFollowNFT(profileID));
         uint256 totalSupply = followNFT.totalSupply();
         uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
