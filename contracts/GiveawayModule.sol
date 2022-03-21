@@ -12,9 +12,11 @@ contract LensHub {
     function defaultProfile(address wallet) external view returns (uint256) {return 0;}
 
     function getProfileIdByHandle(string calldata handle) external view returns (uint256) {return 0;}
+
+    function getHandle(uint256 profileId) external view returns (string memory) {return "";}
 }
 
-contract MetaSnap {
+contract GiveawayModule {
 
     event SendPrize(address indexed _from, address indexed _to, uint256 _value);
 
@@ -29,26 +31,17 @@ contract MetaSnap {
     }
 
     constructor() public {
-        address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367; // lens hub proxy on mumbai testnet
+        address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367;
+        // lens hub proxy on mumbai testnet
         _lensHub = LensHub(watch_addr);
-        console.log('constructor');
-    }
-
-    function interact() public view returns (address[] memory){
-        address followNFTAddr = _lensHub.getFollowNFT(1);
-        IERC721Enumerable followNFT = IERC721Enumerable(followNFTAddr);
-        uint256 totalSupply = followNFT.totalSupply();
-        console.log("Follower:");
-        address[] memory follower = new address[](totalSupply);
-        for (uint256 i = 1; i <= totalSupply; i++) {
-            follower[i - 1] = followNFT.ownerOf(i);
-            console.log(followNFT.ownerOf(i));
-        }
-        return follower;
     }
 
     function getFollower(uint256 profileID) public view returns (address[] memory follower){
-        IERC721Enumerable followNFT = IERC721Enumerable(_lensHub.getFollowNFT(profileID));
+        address followNFTAddress = _lensHub.getFollowNFT(profileID);
+        if (followNFTAddress == address(0)) {
+            return new address[](0);
+        }
+        IERC721Enumerable followNFT = IERC721Enumerable(followNFTAddress);
         uint256 totalSupply = followNFT.totalSupply();
         address[] memory follower = new address[](totalSupply);
         for (uint256 i = 0; i < totalSupply; i++) {
@@ -90,11 +83,8 @@ contract MetaSnap {
         uint256 prize = msg.value;
         Giveaway memory giveaway = Giveaway(donor, profileID, prize, winner);
         // transfer amount to winner
-        console.log('balance');
-        console.log(address(winner).balance);
-        (bool sent, bytes memory data) = payable(address(winner)).call{value: prize}("");
+        (bool sent, bytes memory data) = payable(address(winner)).call{value : prize}("");
         emit SendPrize(donor, winner, prize);
-        console.log(address(winner).balance);
         _giveaways[profileID].push(giveaway);
         return giveaway;
     }
@@ -108,12 +98,19 @@ contract MetaSnap {
     }
 
     function _getRandomFollowerAddress(uint256 profileID) private view returns (address) {
-        IERC721Enumerable followNFT = IERC721Enumerable(_lensHub.getFollowNFT(profileID));
+        address followNFTAddress = _lensHub.getFollowNFT(profileID);
+        if (followNFTAddress == address(0)) {
+            return address(0);
+        }
+        IERC721Enumerable followNFT = IERC721Enumerable(followNFTAddress);
         uint256 totalSupply = followNFT.totalSupply();
         uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
         uint256 winnerIndex = 1 + randomNumber % totalSupply;
-        console.log(winnerIndex);
         return followNFT.ownerOf(winnerIndex);
+    }
+
+    function getHandle(uint256 profileID) public view returns (string memory) {
+        return _lensHub.getHandle(profileID);
     }
 
 }

@@ -1,8 +1,7 @@
 import './App.css';
 import React, {useEffect, useState} from 'react';
 import getWeb3 from "./getWeb3";
-//import GiveawayContract from "./contracts/Giveaway.json";
-import MetaSnapContract from "./contracts/MetaSnap.json";
+import GiveawayModule from "./contracts/GiveawayModule.json";
 import {BallTriangle} from "react-loader-spinner";
 
 function App() {
@@ -23,10 +22,10 @@ function App() {
 
             // Get the contract instance.
             const networkId = await web3.eth.net.getId();
-            const deployedNetwork = MetaSnapContract.networks[networkId];
+            const deployedNetwork = GiveawayModule.networks[networkId];
             console.log("deployedNetwork" + JSON.stringify(deployedNetwork));
             const instance = new web3.eth.Contract(
-                MetaSnapContract.abi,
+                GiveawayModule.abi,
                 deployedNetwork && deployedNetwork.address,
             );
 
@@ -63,11 +62,50 @@ function App() {
                         setHasRequestedResults(true);
                     }}
                 >
-                    <input name="handle" type="text" defaultValue="zer0dot"/>
+                    <input name="handle" type="text" defaultValue="lens"/>
                     <button type="submit" className="cta-button submit-gif-button">
                         Show followers
                     </button>
                 </form>
+
+                <div style={{}}>
+                    {hasRequestedResults ? (Object.values(follower).length + ' followers:') : ''}
+                </div>
+                {follower.map((val) => <div style={{fontSize: 26}} key={val}>{val}<br/>
+                </div>)}
+                <br/>
+                <br/>
+                <br/>
+                <form
+                    onSubmit={async (event) => {
+                        event.preventDefault();
+                        const {web3, accounts, contract} = web3state;
+                        setLoadingState('Creating giveaway');
+                        console.log('accounts: ' + accounts);
+                        console.log('profileID: ' + profileID);
+                        //console.log('handle: ' + (await contract.methods.getHandle(profileID).call()));
+                        const giveaway = await contract.methods.createGiveaway(profileID).send({
+                            from: accounts[0],
+                            value: web3.utils.toWei(event.target.amount.value.toString(), "ether")
+                        });
+                        console.log('giveaway: ' + JSON.stringify(giveaway));
+                        console.log(giveaway.events.SendPrize.returnValues._value + ' were sent to ' + giveaway.events.SendPrize.returnValues._to);
+                        setGiveawayResult({
+                            winner: giveaway.events.SendPrize.returnValues._to,
+                            eth: web3.utils.fromWei(giveaway.events.SendPrize.returnValues._value)
+                        })
+                        const giveaways = await contract.methods.getGiveaways(profileID).call();
+                        console.log('giveaways: ');
+                        console.log(giveaways);
+                        setLoadingState('');
+                    }}
+                >
+                    MATIC: <input name="amount" type="number" step="0.0001" defaultValue="0.0001"/>
+                    <button type="submit" className="cta-button submit-gif-button">
+                        Giveaway!
+                    </button>
+                </form>
+                {giveawayResult ? '' + giveawayResult.winner + ' won ' + giveawayResult.eth + ' MATIC' : ''}
                 <div style={{
                     visibility: loadingState === '' ? 'hidden' : 'visible',
                     display: 'flex',
@@ -82,45 +120,6 @@ function App() {
                 </div>
                 <div style={{fontSize: 16}}>{loadingState}</div>
 
-                <div style={{}}>
-                    {hasRequestedResults ? (Object.values(follower).length + ' follower:') : ''}
-                </div>
-                {follower.map((val) => <div style={{fontSize: 26}} key={val}>{val}<br/>
-                </div>)}
-                <br/>
-                <br/>
-                <br/>
-                <form
-                    onSubmit={async (event) => {
-                        event.preventDefault();
-                        const {web3, accounts, contract} = web3state;
-                        setLoadingState('visible');
-                        console.log('createGiveaway');
-                        console.log('accounts: ' + accounts);
-                        console.log('profileID: ' + profileID);
-                        const giveaway = await contract.methods.createGiveaway(profileID).send({
-                            from: accounts[0],
-                            value: web3.utils.toWei(event.target.amount.value.toString(), "ether")
-                        });
-                        console.log('giveaway: ' + JSON.stringify(giveaway));
-                        console.log(giveaway.events.SendPrize.returnValues._to);
-                        console.log(giveaway.events.SendPrize.returnValues._value);
-                        setGiveawayResult({
-                            winner: giveaway.events.SendPrize.returnValues._to,
-                            eth: web3.utils.fromWei(giveaway.events.SendPrize.returnValues._value)
-                        })
-                        const giveaways = await contract.methods.getGiveaways(profileID).call();
-                        console.log('giveaways: ');
-                        console.log(giveaways);
-                        setLoadingState('');
-                    }}
-                >
-                    MATIC: <input name="amount" type="number" step="0.1" defaultValue="0.5"/>
-                    <button type="submit" className="cta-button submit-gif-button">
-                        Giveaway!
-                    </button>
-                </form>
-                {giveawayResult ? '' + giveawayResult.winner + ' won ' + giveawayResult.eth + ' MATIC' : ''}
             </header>
         </div>
     );
