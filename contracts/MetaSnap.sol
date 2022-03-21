@@ -103,11 +103,11 @@ contract MetaSnap {
         return _lensHub.getProfileIdByHandle(handle);
     }
 
-    function getGiveaways(uint256 profileID) public returns (Giveaway[] memory) {
+    function getGiveaways(uint256 profileID) public view returns (Giveaway[] memory) {
         return _giveaways[profileID];
     }
 
-    function _getRandomFollowerAddress(uint256 profileID) private returns (address) {
+    function _getRandomFollowerAddress(uint256 profileID) private view returns (address) {
         IERC721Enumerable followNFT = IERC721Enumerable(_lensHub.getFollowNFT(profileID));
         uint256 totalSupply = followNFT.totalSupply();
         uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
