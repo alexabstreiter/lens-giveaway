@@ -12,17 +12,18 @@ function App() {
     const [giveawayResult, setGiveawayResult] = useState(null);
     const [hasRequestedResults, setHasRequestedResults] = useState(false);
     const [loadingState, setLoadingState] = useState('');
+    const [tmpWinner, setTmpWinner] = useState('');
     const [web3state, setWeb3state] = useState({web3: null, accounts: null, contract: null});
 
-    useEffect( () => {
+    useEffect(() => {
         async function initializeWeb3() {
             try {
                 // Get network provider and web3 instance.
                 const web3 = await getWeb3();
-    
+
                 // Use web3 to get the user's accounts.
                 const accounts = await web3.eth.getAccounts();
-    
+
                 // Get the contract instance.
                 const networkId = await web3.eth.net.getId();
                 const deployedNetwork = GiveawayModule.networks[networkId];
@@ -31,7 +32,7 @@ function App() {
                     GiveawayModule.abi,
                     deployedNetwork && deployedNetwork.address,
                 );
-    
+
                 // Set web3, accounts, and contract to the state, and then proceed with an
                 // example of interacting with the contract's methods.
                 setWeb3state({web3, accounts, contract: instance});
@@ -43,6 +44,7 @@ function App() {
                 console.error(error);
             }
         }
+
         initializeWeb3();
     }, [setWeb3state])
 
@@ -50,18 +52,36 @@ function App() {
     const getGiveaways = useCallback(async () => {
         const {contract} = web3state;
         if (contract !== null) {
-        const giveaways = await contract.methods.getGiveaways(profileID).call();
-        setPastGiveaways(giveaways);
-        console.log('giveaways: ' + JSON.stringify(giveaways));
+            const giveaways = await contract.methods.getGiveaways(profileID).call();
+            setPastGiveaways(giveaways);
+            console.log('giveaways: ' + JSON.stringify(giveaways));
         }
     }, [web3state, profileID])
 
     useEffect(() => {
         async function fetchGiveaways() {
             await getGiveaways();
-          }
-          fetchGiveaways();
+        }
+
+        fetchGiveaways();
     }, [profileID, setPastGiveaways, getGiveaways])
+
+    let tmpWinnerInterval = 1;
+    let breakTmpWinner = false;
+    function startTmpWinnerAnimation() {
+        breakTmpWinner = false;
+        tmpWinnerInterval = 1;
+        choseTmpWinner();
+    }
+    function choseTmpWinner() {
+        if (breakTmpWinner) {
+            setTmpWinner('');
+            return;
+        }
+        setTmpWinner(follower[Math.floor(Math.random() * follower.length)])
+        tmpWinnerInterval *= 1.01;
+        window.setTimeout(choseTmpWinner, tmpWinnerInterval);
+    }
 
     return (
         <div className="App">
@@ -70,28 +90,30 @@ function App() {
                     Lens Giveaway
                 </h3>
                 <div>
-                <form
-                    onSubmit={async (event) => {
-                        event.preventDefault();
-                        setPastGiveaways([])
-                        const {contract} = web3state;
-                        const _handle = event.target.handle.value;
-                        const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
-                        setHandle(_handle);
-                        setProfileID(_profileID);
-                        console.log('profileID: ' + _profileID);
-                        const followerResult = await contract.methods.getFollower(_profileID).call();
-                        console.log('followerResult: ' + followerResult);
-                        setFollower([...new Set(Object.values(followerResult))]);
-                        setHasRequestedResults(true);
-                        setGiveawayResult(null);
-                    }}
-                >
-                    <input name="handle" type="text" defaultValue="lens"/>
-                    <button type="submit" className="cta-button submit-gif-button">
-                        Show followers
-                    </button>
-                </form>
+                    <form
+                        onSubmit={async (event) => {
+                            event.preventDefault();
+                            setPastGiveaways([])
+                            const {contract} = web3state;
+                            const _handle = event.target.handle.value;
+                            const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
+                            setHandle(_handle);
+                            setProfileID(_profileID);
+                            console.log('profileID: ' + _profileID);
+                            const followerResult = await contract.methods.getFollower(_profileID).call();
+                            console.log('followerResult: ' + followerResult);
+                            const uniqueFollower = [...new Set(Object.values(followerResult))];
+                            setFollower(uniqueFollower);
+                            setHasRequestedResults(true);
+                            setGiveawayResult(null);
+                            breakTmpWinner = true;
+                        }}
+                    >
+                        <input name="handle" type="text" defaultValue="lens"/>
+                        <button type="submit" className="cta-button submit-gif-button">
+                            Show followers
+                        </button>
+                    </form>
                 </div>
                 <div style={{}}>
                     {hasRequestedResults && (follower.length === 0 ? 'This profile does not have any followers. Please select a profile with followers to start a giveaway.' : Object.values(follower).length + ' followers:')}
@@ -106,6 +128,7 @@ function App() {
                         event.preventDefault();
                         const {web3, accounts, contract} = web3state;
                         setLoadingState('Raffle ongoing...');
+                        startTmpWinnerAnimation();
                         const giveaway = await contract.methods.createGiveaway(profileID).send({
                             from: accounts[0],
                             value: web3.utils.toWei(event.target.amount.value.toString(), "ether")
@@ -113,6 +136,7 @@ function App() {
                         console.log('giveaway: ' + JSON.stringify(giveaway));
                         console.log(giveaway.events.SendPrize.returnValues._value + ' were sent to ' + giveaway.events.SendPrize.returnValues._to);
                         setLoadingState('');
+                        breakTmpWinner = true;
                         setGiveawayResult({
                             winner: giveaway.events.SendPrize.returnValues._to,
                             eth: web3.utils.fromWei(giveaway.events.SendPrize.returnValues._value)
@@ -126,7 +150,8 @@ function App() {
                         Giveaway to one lucky winner out of all followers of {handle}!
                     </button>
                 </form>}
-                {giveawayResult ? '' + giveawayResult.winner + ' won ' + giveawayResult.eth + ' MATIC' : ''}
+                {giveawayResult ? '' + giveawayResult.winner + ' won ' + giveawayResult.eth + ' MATIC' : tmpWinner}
+                <br/>
                 <div style={{
                     visibility: loadingState === '' ? 'hidden' : 'visible',
                     display: 'flex',
@@ -139,11 +164,12 @@ function App() {
                         ariaLabel="loading-indicator"
                     />
                 </div>
-                <div style={{fontSize: 16}}>{loadingState}</div>
                 <div style={{}}>
                     {hasRequestedResults && (pastGiveaways.length === 0 ? 'No past giveaway for this profile.' : pastGiveaways.length + ' past giveaways:')}
                 </div>
-                    {hasRequestedResults && pastGiveaways.map((giveaway, i) => <div style={{fontSize: 26}} key={i}>{giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC<br/>
+                <div style={{fontSize: 16}}>{loadingState}</div>
+                {hasRequestedResults && pastGiveaways.map((giveaway, i) => <div style={{fontSize: 26}}
+                                                                                key={i}>{giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC<br/>
                 </div>)}
 
             </header>
