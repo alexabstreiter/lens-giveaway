@@ -4,7 +4,8 @@ pragma experimental ABIEncoderV2;
 
 //import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "hardhat/console.sol";
-import '@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol';
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 contract LensHub {
     function getFollowNFT(uint256 profileId) external view returns (address) {return 0x0000000000000000000000000000000000000000;}
@@ -16,12 +17,17 @@ contract LensHub {
     function getHandle(uint256 profileId) external view returns (string memory) {return "";}
 }
 
-contract GiveawayModule {
-
+contract GiveawayModule is VRFConsumerBase {
     event SendPrize(address indexed _from, address indexed _to, uint256 _value);
+    event TestDone(bytes32 requestId, uint256 randomness);
 
     LensHub _lensHub;
     mapping(uint256 => Giveaway[]) _giveaways;
+
+    bytes32 internal keyHash;
+    uint256 internal fee;
+    
+    uint256 public randomResult;
 
     struct Giveaway {
         address donor;
@@ -30,9 +36,30 @@ contract GiveawayModule {
         address winner;
     }
 
-    constructor() public {
+    constructor() VRFConsumerBase(
+            0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, // VRF Coordinator
+            0x326C977E6efc84E512bB9C30f76E30c160eD06FB  // LINK Token
+        ) {
         address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367; // lens hub proxy on mumbai testnet
         _lensHub = LensHub(watch_addr);
+        keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+        fee = 0.0001 * 10 ** 18; // 0.0001 LINK
+    }
+
+    /** 
+     * Requests randomness 
+     */
+    function getRandomNumber() public returns (bytes32 requestId) {
+        require(LINK.balanceOf(address(this)) > fee, "Not enough LINK - fill contract with faucet");
+        return requestRandomness(keyHash, fee);
+    }
+
+    /**
+     * Callback function used by VRF Coordinator
+     */
+    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+        randomResult = randomness;
+        emit TestDone(requestId, randomness);
     }
 
     function getFollower(uint256 profileID) public view returns (address[] memory follower){

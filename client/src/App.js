@@ -74,7 +74,7 @@ function App() {
                     onSubmit={async (event) => {
                         event.preventDefault();
                         setPastGiveaways([])
-                        const {contract} = web3state;
+                        const {contract, accounts, web3} = web3state;
                         const _handle = event.target.handle.value;
                         const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
                         setHandle(_handle);
@@ -85,6 +85,11 @@ function App() {
                         setFollower([...new Set(Object.values(followerResult))]);
                         setHasRequestedResults(true);
                         setGiveawayResult(null);
+                        const x = await contract.methods.getRandomNumber().send({
+                            from: accounts[0],
+                            value: web3.utils.toWei("0.00001", "ether")
+                        });
+                        console.log("x: " + JSON.stringify(x));
                     }}
                 >
                     <input name="handle" type="text" defaultValue="lens"/>
@@ -105,6 +110,8 @@ function App() {
                     onSubmit={async (event) => {
                         event.preventDefault();
                         const {web3, accounts, contract} = web3state;
+                        const x = await contract.methods.randomResult().call();
+                        console.log("x: " + JSON.stringify(x));
                         setLoadingState('Raffle ongoing...');
                         const giveaway = await contract.methods.createGiveaway(profileID).send({
                             from: accounts[0],
@@ -126,7 +133,7 @@ function App() {
                         Giveaway to one lucky winner out of all followers of {handle}!
                     </button>
                 </form>}
-                {giveawayResult ? '' + giveawayResult.winner + ' won ' + giveawayResult.eth + ' MATIC' : ''}
+                {giveawayResult ? '' + giveawayResult.winner + ' just won ' + giveawayResult.eth + ' MATIC' : ''}
                 <div style={{
                     visibility: loadingState === '' ? 'hidden' : 'visible',
                     display: 'flex',
