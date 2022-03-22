@@ -25,19 +25,19 @@ contract GiveawayModule {
 
     struct Giveaway {
         address donor;
-        uint256 profileID;
+        uint256 profileID; // this can be removed since it is the key of the mapping
         uint256 amount;
         address winner;
     }
 
     constructor() public {
-        address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367;
-        // lens hub proxy on mumbai testnet
+        address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367; // lens hub proxy on mumbai testnet
         _lensHub = LensHub(watch_addr);
     }
 
     function getFollower(uint256 profileID) public view returns (address[] memory follower){
         address followNFTAddress = _lensHub.getFollowNFT(profileID);
+        // if a lens profile has no followers, the followNFT address is 0x0 
         if (followNFTAddress == address(0)) {
             return new address[](0);
         }
@@ -82,7 +82,6 @@ contract GiveawayModule {
         address donor = msg.sender;
         uint256 prize = msg.value;
         Giveaway memory giveaway = Giveaway(donor, profileID, prize, winner);
-        // transfer amount to winner
         (bool sent, bytes memory data) = payable(address(winner)).call{value : prize}("");
         emit SendPrize(donor, winner, prize);
         _giveaways[profileID].push(giveaway);
