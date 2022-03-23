@@ -18,32 +18,19 @@ function App() {
     const test = () => {
         console.log('call test');
         const {contract, accounts, web3, web3Socket, socketContract} = web3state;
-        socketContract.events.TestDone({
-            //filter: {}, // Using an array means OR: e.g. 20 or 23
-            //fromBlock: "pending"
-        }, function (error, event) {
-            console.log("Event received*: " + event);
+        socketContract.events.SendPrize({
         })
-            .on('data', function (event) {
-                console.log("Event received: " + event); // same results as the optional callback above
-                console.log(event); // same results as the optional callback above
-            })
-            .on('changed', function (event) {
-                // remove event from local database
+            .on('data', async function (event) {
+                console.log("Event received: " + JSON.stringify(event)); // same results as the optional callback above
+                setGiveawayResult({
+                    winner: event.returnValues._to,
+                    eth: web3.utils.fromWei(event.returnValues._value)
+                });
+                setLoadingState('');
+                setPastGiveaways([]);
+                await getGiveaways();
             })
             .on('error', console.error);
-
-        /*const subscription = web3Socket.eth.subscribe('logs', {
-            address: contract.address,
-            topics: ['0x00000000000000000000000011adbccefb0e8c325e427f21c24e845fa751054a'],
-        }, function (error, result) {
-            console.log(error);
-            console.log('callback subscription');
-            if (!error)
-                console.log(result);
-        });*/
-
-        //socketContract.events.allEvents({fromBlock: 'latest'}, console.log)
     }
 
     useEffect(() => {
@@ -102,7 +89,6 @@ function App() {
         if (contract !== null) {
             const giveaways = await contract.methods.getGiveaways(profileID).call();
             setPastGiveaways(giveaways);
-            //console.log('giveaways: ' + JSON.stringify(giveaways));
         }
     }, [web3state, profileID])
 
@@ -138,9 +124,7 @@ function App() {
                             const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
                             setHandle(_handle);
                             setProfileID(_profileID);
-                            //console.log('profileID: ' + _profileID);
                             const followerResult = await contract.methods.getFollower(_profileID).call();
-                            //console.log('followerResult: ' + followerResult);
                             setFollower([...new Set(Object.values(followerResult))]);
                             setHasRequestedResults(true);
                             setGiveawayResult(null);
@@ -169,15 +153,6 @@ function App() {
                             from: accounts[0],
                             value: web3.utils.toWei(event.target.amount.value.toString(), "ether")
                         });
-                        //console.log('giveaway: ' + JSON.stringify(giveaway));
-                        //console.log(giveaway.events.SendPrize.returnValues._value + ' were sent to ' + giveaway.events.SendPrize.returnValues._to);
-                        setLoadingState('');
-                        /*setGiveawayResult({
-                            winner: giveaway.events.SendPrize.returnValues._to,
-                            eth: web3.utils.fromWei(giveaway.events.SendPrize.returnValues._value)
-                        });
-                        setPastGiveaways([]);*/
-                        await getGiveaways();
                     }}
                 >
                     MATIC: <input name="amount" type="number" step="0.000001" defaultValue="0.000001"/>
