@@ -19,8 +19,10 @@ function App() {
   const [tmpWinner, setTmpWinner] = useState("");
   const [web3state, setWeb3state] = useState({
     web3: null,
+    web3Socket: null,
     accounts: null,
     contract: null,
+    socketContract: null,
   });
 
   const test = () => {
@@ -46,6 +48,7 @@ function App() {
       try {
         // Get network provider and web3 instance.
         const web3 = await getWeb3();
+        const web3Socket = await getWeb3Socket(web3);
 
         // Use web3 to get the user's accounts.
         const accounts = await web3.eth.getAccounts();
@@ -75,10 +78,9 @@ function App() {
                     web3Socket.setProvider(web3SocketProvider)
                 });
 
-
         // Set web3, accounts, and contract to the state, and then proceed with an
         // example of interacting with the contract's methods.
-        setWeb3state({ web3, accounts, contract: instance });
+        setWeb3state({ web3, web3Socket, accounts, contract: instance , socketContract});
       } catch (error) {
         // Catch any errors for any of the above operations.
         alert(
