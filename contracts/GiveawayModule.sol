@@ -27,6 +27,10 @@ contract GiveawayModule is VRFConsumerBase {
     bytes32 internal keyHash;
     uint256 internal fee;
     
+    uint256 internal profileIDOfOngoingRaffle;
+    uint256 internal prizeOfOngoingRaffle;
+    address internal donorOfOngoingRaffle;
+
     uint256 public randomResult;
 
     struct Giveaway {
@@ -44,6 +48,8 @@ contract GiveawayModule is VRFConsumerBase {
         _lensHub = LensHub(watch_addr);
         keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
         fee = 0.0001 * 10 ** 18; // 0.0001 LINK
+        profileIDOfOngoingRaffle = 0;
+        prizeOfOngoingRaffle = 0;
     }
 
     /** 
@@ -60,6 +66,16 @@ contract GiveawayModule is VRFConsumerBase {
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         randomResult = randomness;
         emit TestDone(requestId, randomness);
+        uint256 profileID = profileIDOfOngoingRaffle;
+        address winner = _getRandomFollowerAddress(profileID, randomness);
+        address donor = donorOfOngoingRaffle; 
+        uint256 prize = prizeOfOngoingRaffle;
+        Giveaway memory giveaway = Giveaway(donor, profileID, prize, winner);
+        (bool sent, bytes memory data) = payable(address(winner)).call{value : prize}("");
+        profileIDOfOngoingRaffle = 0;
+        prizeOfOngoingRaffle = 0;
+        emit SendPrize(donor, winner, prize);
+        _giveaways[profileID].push(giveaway);
     }
 
     function getFollower(uint256 profileID) public view returns (address[] memory follower){
@@ -104,15 +120,13 @@ contract GiveawayModule is VRFConsumerBase {
         return uniqueFollower;
     }
 
-    function createGiveaway(uint256 profileID) public payable returns (Giveaway memory) {
-        address winner = _getRandomFollowerAddress(profileID);
-        address donor = msg.sender;
-        uint256 prize = msg.value;
-        Giveaway memory giveaway = Giveaway(donor, profileID, prize, winner);
-        (bool sent, bytes memory data) = payable(address(winner)).call{value : prize}("");
-        emit SendPrize(donor, winner, prize);
-        _giveaways[profileID].push(giveaway);
-        return giveaway;
+    function createGiveaway(uint256 profileID) public payable returns (bytes32 requestId) {
+        require(profileIDOfOngoingRaffle == 0, "A raffle is currently ongoing. Please wait a bit.");
+        profileIDOfOngoingRaffle = profileID;
+        prizeOfOngoingRaffle = msg.value;
+        donorOfOngoingRaffle = msg.sender;
+        //uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
+        return requestRandomness(keyHash, fee);
     }
 
     function getProfileIdByHandle(string calldata handle) public view returns (uint256){
@@ -123,14 +137,13 @@ contract GiveawayModule is VRFConsumerBase {
         return _giveaways[profileID];
     }
 
-    function _getRandomFollowerAddress(uint256 profileID) private view returns (address) {
+    function _getRandomFollowerAddress(uint256 profileID, uint256 randomNumber) private view returns (address) {
         address followNFTAddress = _lensHub.getFollowNFT(profileID);
         if (followNFTAddress == address(0)) {
             return address(0);
         }
         IERC721Enumerable followNFT = IERC721Enumerable(followNFTAddress);
         uint256 totalSupply = followNFT.totalSupply();
-        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
         uint256 winnerIndex = 1 + randomNumber % totalSupply;
         return followNFT.ownerOf(winnerIndex);
     }

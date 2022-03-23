@@ -14,6 +14,21 @@ function App() {
     const [loadingState, setLoadingState] = useState('');
     const [web3state, setWeb3state] = useState({web3: null, accounts: null, contract: null});
 
+    const test = () => {
+        const {contract, accounts, web3} = web3state;
+        contract.events.TestDone({
+            //filter: {}, // Using an array means OR: e.g. 20 or 23
+            fromBlock: "pending"
+        }, function(error, event){ console.log("Event received*: " + event); })
+        .on('data', function(event){
+            console.log("Event received: " + event); // same results as the optional callback above
+        })
+        .on('changed', function(event){
+            // remove event from local database
+        })
+        .on('error', console.error);
+    }
+
     useEffect( () => {
         async function initializeWeb3() {
             try {
@@ -63,6 +78,14 @@ function App() {
           fetchGiveaways();
     }, [profileID, setPastGiveaways, getGiveaways])
 
+    useEffect(() => {
+        const {contract} = web3state;
+        if (contract !== null) {
+            test();
+        }
+    }, [web3state])
+
+
     return (
         <div className="App">
             <header className="App-header">
@@ -85,11 +108,6 @@ function App() {
                         setFollower([...new Set(Object.values(followerResult))]);
                         setHasRequestedResults(true);
                         setGiveawayResult(null);
-                        const x = await contract.methods.getRandomNumber().send({
-                            from: accounts[0],
-                            value: web3.utils.toWei("0.00001", "ether")
-                        });
-                        console.log("x: " + JSON.stringify(x));
                     }}
                 >
                     <input name="handle" type="text" defaultValue="lens"/>
@@ -110,21 +128,19 @@ function App() {
                     onSubmit={async (event) => {
                         event.preventDefault();
                         const {web3, accounts, contract} = web3state;
-                        const x = await contract.methods.randomResult().call();
-                        console.log("x: " + JSON.stringify(x));
                         setLoadingState('Raffle ongoing...');
                         const giveaway = await contract.methods.createGiveaway(profileID).send({
                             from: accounts[0],
                             value: web3.utils.toWei(event.target.amount.value.toString(), "ether")
                         });
                         console.log('giveaway: ' + JSON.stringify(giveaway));
-                        console.log(giveaway.events.SendPrize.returnValues._value + ' were sent to ' + giveaway.events.SendPrize.returnValues._to);
+                        //console.log(giveaway.events.SendPrize.returnValues._value + ' were sent to ' + giveaway.events.SendPrize.returnValues._to);
                         setLoadingState('');
-                        setGiveawayResult({
+                        /*setGiveawayResult({
                             winner: giveaway.events.SendPrize.returnValues._to,
                             eth: web3.utils.fromWei(giveaway.events.SendPrize.returnValues._value)
                         });
-                        setPastGiveaways([]);
+                        setPastGiveaways([]);*/
                         await getGiveaways();
                     }}
                 >
