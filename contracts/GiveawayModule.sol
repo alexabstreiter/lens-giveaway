@@ -125,6 +125,8 @@ contract GiveawayModule is VRFConsumerBase {
         profileIDOfOngoingRaffle = profileID;
         prizeOfOngoingRaffle = msg.value;
         donorOfOngoingRaffle = msg.sender;
+        bytes32 requestId2;
+        emit TestDone(requestId2, 3);
         //uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
         return requestRandomness(keyHash, fee);
     }
