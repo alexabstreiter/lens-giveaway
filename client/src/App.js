@@ -164,10 +164,10 @@ function App() {
                         ariaLabel="loading-indicator"
                     />
                 </div>
+                <div style={{fontSize: 16}}>{loadingState}</div>
                 <div style={{}}>
                     {hasRequestedResults && (pastGiveaways.length === 0 ? 'No past giveaway for this profile.' : pastGiveaways.length + ' past giveaways:')}
                 </div>
-                <div style={{fontSize: 16}}>{loadingState}</div>
                 {hasRequestedResults && pastGiveaways.map((giveaway, i) => <div style={{fontSize: 26}}
                                                                                 key={i}>{giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC<br/>
                 </div>)}
