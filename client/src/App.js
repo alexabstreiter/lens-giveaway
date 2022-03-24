@@ -1,12 +1,14 @@
-import "./App.css";
-import React, {useEffect, useState, useCallback} from "react";
-import {getWeb3, getWeb3Socket} from "./getWeb3";
+import React, { useEffect, useState, useCallback } from "react";
+import { getWeb3, getWeb3Socket } from "./getWeb3";
 import GiveawayModule from "./contracts/GiveawayModule.json";
-import {BallTriangle} from "react-loader-spinner";
+import { BallTriangle } from "react-loader-spinner";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Web3 from "web3";
+import { StylesProvider, ThemeProvider } from "@mui/styles";
+import { theme } from "./theme.js";
+import Grid from "@mui/material/Grid";
 
 function App() {
     const [profileID, setProfileID] = useState(1);
@@ -26,20 +28,21 @@ function App() {
     });
 
     const initializeEventListener = () => {
-        const {contract, accounts, web3, web3Socket, socketContract} = web3state;
-        socketContract.events.SendPrize({})
-            .on('data', async function (event) {
+        const { contract, accounts, web3, web3Socket, socketContract } = web3state;
+        socketContract.events
+            .SendPrize({})
+            .on("data", async function (event) {
                 console.log("Event received: " + JSON.stringify(event)); // same results as the optional callback above
                 setGiveawayResult({
                     winner: event.returnValues._to,
-                    eth: web3.utils.fromWei(event.returnValues._value)
+                    eth: web3.utils.fromWei(event.returnValues._value),
                 });
-                setLoadingState('');
+                setLoadingState("");
                 setPastGiveaways([]);
                 await getGiveaways();
             })
-            .on('error', console.error);
-    }
+            .on("error", console.error);
+    };
 
     useEffect(() => {
         async function initializeWeb3() {
@@ -55,35 +58,33 @@ function App() {
                 const networkId = await web3.eth.net.getId();
                 const deployedNetwork = GiveawayModule.networks[networkId];
                 console.log("deployedNetwork" + JSON.stringify(deployedNetwork));
-                const instance = new web3.eth.Contract(
-                    GiveawayModule.abi,
-                    deployedNetwork && deployedNetwork.address,
-                );
-                const socketContract = new web3Socket.eth.Contract(
-                    GiveawayModule.abi,
-                    deployedNetwork && deployedNetwork.address,
-                );
+                const instance = new web3.eth.Contract(GiveawayModule.abi, deployedNetwork && deployedNetwork.address);
+                const socketContract = new web3Socket.eth.Contract(GiveawayModule.abi, deployedNetwork && deployedNetwork.address);
 
-                const provider = web3Socket.currentProvider
-                provider.on('error', e => console.log('WS Error', e));
-                provider.on('end', async e => {
-                    console.log('WS closed');
-                    console.log('Attempting to reconnect...');
+                const provider = web3Socket.currentProvider;
+                provider.on("error", (e) => console.log("WS Error", e));
+                provider.on("end", async (e) => {
+                    console.log("WS closed");
+                    console.log("Attempting to reconnect...");
                     const web3SocketProvider = new Web3.providers.WebsocketProvider("wss://ws-matic-mumbai.chainstacklabs.com");
-                    web3SocketProvider.on('connect', function () {
-                        console.log('WSS Reconnected');
+                    web3SocketProvider.on("connect", function () {
+                        console.log("WSS Reconnected");
                     });
-                    web3Socket.setProvider(web3SocketProvider)
+                    web3Socket.setProvider(web3SocketProvider);
                 });
 
                 // Set web3, accounts, and contract to the state, and then proceed with an
                 // example of interacting with the contract's methods.
-                setWeb3state({web3, web3Socket, accounts, contract: instance, socketContract});
+                setWeb3state({
+                    web3,
+                    web3Socket,
+                    accounts,
+                    contract: instance,
+                    socketContract,
+                });
             } catch (error) {
                 // Catch any errors for any of the above operations.
-                alert(
-                    `Failed to load web3, accounts, or contract. Check console for details.`
-                );
+                alert(`Failed to load web3, accounts, or contract. Check console for details.`);
                 console.error(error);
             }
         }
@@ -92,7 +93,7 @@ function App() {
     }, [setWeb3state]);
 
     const getGiveaways = useCallback(async () => {
-        const {contract} = web3state;
+        const { contract } = web3state;
         if (contract !== null) {
             const giveaways = await contract.methods.getGiveaways(profileID).call();
             setPastGiveaways(giveaways);
@@ -126,152 +127,121 @@ function App() {
         window.setTimeout(choseTmpWinner, tmpWinnerInterval);
     }
 
-
     useEffect(() => {
-        const {contract} = web3state;
+        const { contract } = web3state;
         if (contract !== null) {
             initializeEventListener();
         }
-    }, [web3state])
+    }, [web3state]);
 
     return (
-        <div className="App">
-            <link
-                rel="stylesheet"
-                href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
-            />
-            <header className="App-header">
-                <Typography variant="h3">Lens Giveaway</Typography>
-                <div>
-                    <form
-                        onSubmit={async (event) => {
-                            event.preventDefault();
-                            setPastGiveaways([]);
-                            const {contract} = web3state;
-                            const _handle = event.target.handle.value;
-                            const _profileID = await contract.methods
-                                .getProfileIdByHandle(_handle)
-                                .call();
-                            setHandle(_handle);
-                            setProfileID(_profileID);
-                            console.log("profileID: " + _profileID);
-                            const followerResult = await contract.methods
-                                .getFollower(_profileID)
-                                .call();
-                            console.log("followerResult: " + followerResult);
-                            const uniqueFollower = [
-                                ...new Set(Object.values(followerResult)),
-                            ];
-                            setFollower(uniqueFollower);
-                            setHasRequestedResults(true);
-                            setGiveawayResult(null);
-                            breakTmpWinner = true;
-                        }}
-                    >
-                        <TextField variant="outlined" name="handle" defaultValue="lens"/>
-                        <Button
-                            variant="contained"
-                            type="submit"
-                            className="cta-button submit-gif-button"
-                        >
-                            Show followers
-                        </Button>
-                    </form>
-                </div>
-                <div style={{}}>
-                    <Typography variant="body1">
-                        {hasRequestedResults &&
-                        (follower.length === 0
-                            ? "This profile does not have any followers. Please select a profile with followers to start a giveaway."
-                            : Object.values(follower).length + " followers:")}
-                    </Typography>
-                </div>
+        <ThemeProvider theme={theme}>
+            <StylesProvider>
+                <Grid container className="App" style={{ margin: "16px" }} direction={"column"} xs={12}>
+                    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+                    <header className="App-header">
+                        <Grid item xs={12}>
+                            <Typography variant="h3">Lens Giveaway</Typography>
+                        </Grid>
+                        <Grid item>
+                            <form
+                                onSubmit={async (event) => {
+                                    event.preventDefault();
+                                    setPastGiveaways([]);
+                                    const { contract } = web3state;
+                                    const _handle = event.target.handle.value;
+                                    const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
+                                    setHandle(_handle);
+                                    setProfileID(_profileID);
+                                    console.log("profileID: " + _profileID);
+                                    const followerResult = await contract.methods.getFollower(_profileID).call();
+                                    console.log("followerResult: " + followerResult);
+                                    const uniqueFollower = [...new Set(Object.values(followerResult))];
+                                    setFollower(uniqueFollower);
+                                    setHasRequestedResults(true);
+                                    setGiveawayResult(null);
+                                    breakTmpWinner = true;
+                                }}
+                                style={{ width: "100%" }}
+                            >
+                                <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
+                                    <Grid item>
+                                        <TextField variant="outlined" name="handle" defaultValue="lens" />
+                                    </Grid>
+                                    <Grid item>
+                                        <Button variant="contained" type="submit" className="cta-button submit-gif-button">
+                                            Show followers
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </form>
+                        </Grid>
+                        <Grid style={{}}>
+                            <Typography variant="body1">
+                                {hasRequestedResults &&
+                                    (follower.length === 0
+                                        ? "This profile does not have any followers. Please select a profile with followers to start a giveaway."
+                                        : Object.values(follower).length + " followers:")}
+                            </Typography>
+                        </Grid>
 
-                {follower.map((val) => (
-                    <div style={{fontSize: 26}} key={val}>
-                        <Typography variant="body1"> {val}</Typography>
-                    </div>
-                ))}
-                {handle !== "" && follower.length > 0 && (
-                    <form
-                        onSubmit={async (event) => {
-                            event.preventDefault();
-                            const {web3, accounts, contract} = web3state;
-                            setLoadingState("Raffle ongoing...");
-                            startTmpWinnerAnimation();
-                            const giveaway = await contract.methods
-                                .createGiveaway(profileID)
-                                .send({
-                                    from: accounts[0],
-                                    value: web3.utils.toWei(
-                                        event.target.amount.value.toString(),
-                                        "ether"
-                                    ),
-                                });
-                        }}
-                    >
+                        {follower.map((val) => (
+                            <Grid style={{ fontSize: 26 }} key={val}>
+                                <Typography variant="body1"> {val}</Typography>
+                            </Grid>
+                        ))}
+                        {handle !== "" && follower.length > 0 && (
+                            <form
+                                onSubmit={async (event) => {
+                                    event.preventDefault();
+                                    const { web3, accounts, contract } = web3state;
+                                    setLoadingState("Raffle ongoing...");
+                                    startTmpWinnerAnimation();
+                                    const giveaway = await contract.methods.createGiveaway(profileID).send({
+                                        from: accounts[0],
+                                        value: web3.utils.toWei(event.target.amount.value.toString(), "ether"),
+                                    });
+                                }}
+                            >
+                                <Typography variant="body1">
+                                    MATIC:
+                                    <TextField variant="outlined" name="amount" type="number" step="0.0001" defaultValue="0.0001" />
+                                </Typography>
+                                <Button variant="contained" type="submit" className="cta-button submit-gif-button">
+                                    Giveaway to one lucky winner out of all followers of {handle}!
+                                </Button>
+                            </form>
+                        )}
                         <Typography variant="body1">
-                            {" "}
-                            MATIC:{" "}
-                            <TextField
-                                variant="outlined"
-                                name="amount"
-                                type="number"
-                                step="0.0001"
-                                defaultValue="0.0001"
-                            />
+                            {giveawayResult ? "" + giveawayResult.winner + " won " + giveawayResult.eth + " MATIC" : tmpWinner}
                         </Typography>
-                        <Button
-                            variant="contained"
-                            type="submit"
-                            className="cta-button submit-gif-button"
+                        <br />
+                        <Grid
+                            style={{
+                                visibility: loadingState === "" ? "hidden" : "visible",
+                                display: "flex",
+                                fontSize: 15,
+                            }}
                         >
-                            Giveaway to one lucky winner out of all followers of {handle}!
-                        </Button>
-                    </form>
-                )}
-                <Typography variant="body1">
-                    {giveawayResult
-                        ? "" +
-                        giveawayResult.winner +
-                        " won " +
-                        giveawayResult.eth +
-                        " MATIC"
-                        : tmpWinner}
-                </Typography>
-                <br/>
-                <div
-                    style={{
-                        visibility: loadingState === "" ? "hidden" : "visible",
-                        display: "flex",
-                        fontSize: 15,
-                    }}
-                >
-                    <BallTriangle
-                        height="40"
-                        width="40"
-                        color="grey"
-                        ariaLabel="loading-indicator"
-                    />
-                </div>
-                <div style={{fontSize: 16}}>{loadingState}</div>
-                <div style={{}}>
-                    <Typography variant="body1">
+                            <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator" />
+                        </Grid>
+                        <Grid style={{ fontSize: 16 }}>{loadingState}</Grid>
+                        <Grid style={{}}>
+                            <Typography variant="body1">
+                                {hasRequestedResults &&
+                                    (pastGiveaways.length === 0 ? "No past giveaway for this profile." : pastGiveaways.length + " past giveaways:")}
+                            </Typography>
+                        </Grid>
                         {hasRequestedResults &&
-                        (pastGiveaways.length === 0
-                            ? "No past giveaway for this profile."
-                            : pastGiveaways.length + " past giveaways:")}
-                    </Typography>
-                </div>
-                {hasRequestedResults &&
-                pastGiveaways.map((giveaway, i) => (
-                    <Typography variant="body1" key={i}>
-                        {giveaway.winner} won {giveaway.amount / 1000000000000000000}{" "}
-                        MATIC
-                    </Typography>
-                ))}
-            </header>
-        </div>
+                            pastGiveaways.map((giveaway, i) => (
+                                <Typography variant="body1" key={i}>
+                                    {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
+                                </Typography>
+                            ))}
+                    </header>
+                </Grid>
+            </StylesProvider>
+        </ThemeProvider>
     );
 }
 
