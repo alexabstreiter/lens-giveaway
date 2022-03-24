@@ -25,8 +25,7 @@ function App() {
         socketContract: null,
     });
 
-    const test = () => {
-        console.log('call test');
+    const initializeEventListener = () => {
         const {contract, accounts, web3, web3Socket, socketContract} = web3state;
         socketContract.events.SendPrize({})
             .on('data', async function (event) {
@@ -131,7 +130,7 @@ function App() {
     useEffect(() => {
         const {contract} = web3state;
         if (contract !== null) {
-            test();
+            initializeEventListener();
         }
     }, [web3state])
 
