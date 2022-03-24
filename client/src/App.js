@@ -254,6 +254,7 @@ function App() {
 
                         <Grid
                             style={{
+                                // TODO show instead of giveaway form during giveaway
                                 visibility: loadingState === "" ? "hidden" : "visible",
                                 display: "flex",
                                 fontSize: 15,
