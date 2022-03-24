@@ -28,7 +28,7 @@ function App() {
     });
 
     const initializeEventListener = () => {
-        const { contract, accounts, web3, web3Socket, socketContract } = web3state;
+        const { web3, socketContract } = web3state;
         socketContract.events
             .SendPrize({})
             .on("data", async function (event) {
@@ -197,7 +197,7 @@ function App() {
                                     const { web3, accounts, contract } = web3state;
                                     setLoadingState("Raffle ongoing...");
                                     startTmpWinnerAnimation();
-                                    const giveaway = await contract.methods.createGiveaway(profileID).send({
+                                    await contract.methods.createGiveaway(profileID).send({
                                         from: accounts[0],
                                         value: web3.utils.toWei(event.target.amount.value.toString(), "ether"),
                                     });

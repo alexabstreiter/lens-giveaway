@@ -25,9 +25,7 @@ export const getWeb3 = () =>
             }
             // Fallback to localhost; use dev console port by default...
             else {
-                const provider = new Web3.providers.HttpProvider(
-                    "http://127.0.0.1:8545"
-                );
+                const provider = new Web3.providers.HttpProvider("http://127.0.0.1:8545");
                 const web3 = new Web3(provider);
                 console.log("No web3 instance injected, using Local web3.");
                 resolve(web3);
@@ -35,26 +33,28 @@ export const getWeb3 = () =>
         });
     });
 
-export const getWeb3Socket = (web3) => new Promise(async (resolve, reject) => {
-    try {
-        let web3Socket = web3;
-        const networkName = await web3.eth.net.getNetworkType();
-        web3Socket = new Web3(new Web3.providers.WebsocketProvider("wss://ws-matic-mumbai.chainstacklabs.com",
-            {
-                clientConfig: {
-                    keepalive: true,
-                    keepaliveInterval: 60000
-                },
-                reconnect: {
-                    auto: true,
-                    delay: 1000,
-                    maxAttempts: 10,
-                },
-            }));
-        resolve(web3Socket);
-    } catch (error) {
-        reject(error);
-    }
-});
+export const getWeb3Socket = (web3) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            let web3Socket = web3;
+            //const networkName = await web3.eth.net.getNetworkType();
+            web3Socket = new Web3(
+                new Web3.providers.WebsocketProvider("wss://ws-matic-mumbai.chainstacklabs.com", {
+                    clientConfig: {
+                        keepalive: true,
+                        keepaliveInterval: 60000,
+                    },
+                    reconnect: {
+                        auto: true,
+                        delay: 1000,
+                        maxAttempts: 10,
+                    },
+                })
+            );
+            resolve(web3Socket);
+        } catch (error) {
+            reject(error);
+        }
+    });
 
-export default {getWeb3, getWeb3Socket};
+export default { getWeb3, getWeb3Socket };
