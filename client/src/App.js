@@ -10,6 +10,7 @@ import { ThemeProvider } from "@mui/styles";
 import { theme } from "./theme.js";
 import InputAdornment from "@mui/material/InputAdornment";
 import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
 
 function App() {
     const [profileID, setProfileID] = useState(1);
@@ -142,8 +143,23 @@ function App() {
                 <header className="App-header">
                     <ThemeProvider theme={theme}>
                         <Grid container direction={"column"} xs={12} spacing={1}>
-                            <Grid item xs={12}>
-                                <Typography variant="h3">Lens Giveaway</Typography>
+                            <Grid item container direction={"row"} spacing={4} justifyContent="space-between">
+                                <Grid item xs={4}>
+                                    <Typography variant="h3">Lens Giveaway</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <Box
+                                        component="img"
+                                        sx={{
+                                            height: 50,
+                                            width: 70,
+                                            maxHeight: { xs: 233, md: 167 },
+                                            maxWidth: { xs: 350, md: 250 },
+                                        }}
+                                        alt="Logo"
+                                        src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&w=350&dpr=2"
+                                    />
+                                </Grid>
                             </Grid>
 
                             <Grid item container direction={"row"} spacing={4}>
@@ -261,24 +277,26 @@ function App() {
                                         </Grid>
                                     )}
 
-                                    <Grid item container direction={"column"} xs={6}>
-                                        <Grid item>
-                                            <Typography variant="body1">
-                                                {hasRequestedResults &&
-                                                    (pastGiveaways.length === 0
-                                                        ? "No past giveaway for this profile."
-                                                        : pastGiveaways.length + " past giveaways:")}
-                                            </Typography>
+                                    {hasRequestedResults && (
+                                        <Grid item container direction={"column"} xs={6}>
+                                            <Grid item>
+                                                <Typography variant="body1">
+                                                    {hasRequestedResults &&
+                                                        (pastGiveaways.length === 0
+                                                            ? "No past giveaway for this profile."
+                                                            : pastGiveaways.length + " past giveaways:")}
+                                                </Typography>
+                                            </Grid>
+                                            {hasRequestedResults &&
+                                                pastGiveaways.map((giveaway, i) => (
+                                                    <Grid item key={i}>
+                                                        <Typography variant="body1">
+                                                            {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
+                                                        </Typography>
+                                                    </Grid>
+                                                ))}
                                         </Grid>
-                                        {hasRequestedResults &&
-                                            pastGiveaways.map((giveaway, i) => (
-                                                <Grid item key={i}>
-                                                    <Typography variant="body1">
-                                                        {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
-                                                    </Typography>
-                                                </Grid>
-                                            ))}
-                                    </Grid>
+                                    )}
                                 </Grid>
                             </Grid>
                         </Grid>
