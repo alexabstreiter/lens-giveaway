@@ -1,5 +1,4 @@
-
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from "@mui/material/styles";
 
 export const theme = createTheme({
     /*palette: {
@@ -13,22 +12,22 @@ export const theme = createTheme({
       // Please refer to the following for more details
       // https://mui.com/customization/default-theme/#explore
     },*/
-    // Here you could add global styles what you exactly want
+    palette: {
+        mode: "dark",
+    },
     component: {
-      typography: {
-        styleOverrides: {
-        // Name of the slot
-        root: {
-          // Some CSS
-          fontFamily: 'Roboto',
-        },
-      },
-      /*chip: {
+        typography: {
+            styleOverrides: {
+                root: {
+                    fontFamily: "Roboto",
+                },
+            },
+            /*chip: {
         root: {
           backgroundColor: someColor
           // color props should work color="primary" and be applied the primary color #000
         }
       }*/
-    }
-  }
+        },
+    },
 });
