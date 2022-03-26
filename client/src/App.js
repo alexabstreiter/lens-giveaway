@@ -140,173 +140,189 @@ function App() {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Grid container className="App" style={{ margin: "16px" }} direction={"column"} xs={12}>
-                <ThemeProvider theme={theme}>
-                    <Grid container direction={"column"} xs={12} spacing={1}>
-                        <Grid item container direction={"row"} spacing={4} justifyContent="space-between">
-                            <Grid item xs={4}>
-                                <Typography variant="h3">LensRaffle</Typography>
-                            </Grid>
-                            <Grid item>
-                                <Box
-                                    component="img"
-                                    sx={{
-                                        height: 50,
-                                        width: 50,
-                                        maxHeight: { xs: 233, md: 167 },
-                                        maxWidth: { xs: 350, md: 250 },
-                                    }}
-                                    alt="Logo"
-                                    src="https://icodrops.com/wp-content/uploads/2022/02/LensProtocol_logo-1.jpeg"
-                                />
-                            </Grid>
+            <Grid container direction={"column"} xs={12} spacing={1} style={{ padding: "16px" }}>
+                <Grid item container direction={"row"} spacing={4} justifyContent="space-between">
+                    <Grid item xs={4}>
+                        <Typography variant="h3">LensRaffle</Typography>
+                    </Grid>
+                    <Grid item container direction={"row"} spacing={0} alignItems="center" xs={6} justifyContent="flex-end">
+                        <Grid item>
+                            <Typography variant="body">Used technologies:</Typography>
                         </Grid>
+                        <Grid item>
+                            <Box
+                                component="img"
+                                sx={{
+                                    height: 50,
+                                    width: 50,
+                                    maxHeight: { xs: 233, md: 167 },
+                                    maxWidth: { xs: 350, md: 250 },
+                                }}
+                                alt="Logo"
+                                src="https://icodrops.com/wp-content/uploads/2022/02/LensProtocol_logo-1.jpeg"
+                            />
+                        </Grid>
+                        <Grid item>
+                            <Box
+                                component="img"
+                                sx={{
+                                    height: 50,
+                                    width: 90,
+                                    maxHeight: { xs: 233, md: 167 },
+                                    maxWidth: { xs: 350, md: 250 },
+                                }}
+                                alt="Logo"
+                                src="https://block-builders.de/wp-content/uploads/2022/01/Chainlink-678x381.png"
+                            />
+                        </Grid>
+                        <Grid item>
+                            <Box
+                                component="img"
+                                sx={{
+                                    height: 50,
+                                    width: 90,
+                                    maxHeight: { xs: 233, md: 167 },
+                                    maxWidth: { xs: 350, md: 250 },
+                                }}
+                                alt="Logo"
+                                src="https://forkast.news/wp-content/uploads/2021/12/polygon-1260x709.jpg"
+                            />
+                        </Grid>
+                    </Grid>
+                </Grid>
 
-                        <Grid item container direction={"row"} spacing={4}>
-                            <Grid item container direction={"column"} spacing={1} xs={4}>
-                                <Grid item>
-                                    <form
-                                        onSubmit={async (event) => {
-                                            event.preventDefault();
-                                            setPastGiveaways([]);
-                                            const { contract } = web3state;
-                                            const _handle = event.target.handle.value;
-                                            const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
-                                            setHandle(_handle);
-                                            setProfileID(_profileID);
-                                            const followerResult = await contract.methods.getFollower(_profileID).call();
-                                            const uniqueFollower = [...new Set(Object.values(followerResult))];
-                                            setFollower(uniqueFollower);
-                                            setHasRequestedResults(true);
-                                            setGiveawayResult(null);
-                                            breakTmpWinner = true;
-                                        }}
-                                        style={{ width: "100%" }}
-                                    >
-                                        <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
-                                            <Grid item>
-                                                <TextField variant="outlined" name="handle" defaultValue="lens" />
-                                            </Grid>
-                                            <Grid item>
-                                                <Button
-                                                    variant="contained"
-                                                    type="submit"
-                                                    className="cta-button submit-gif-button"
-                                                    disabled={loadingState !== ""}
-                                                >
-                                                    Show followers
-                                                </Button>
-                                            </Grid>
-                                        </Grid>
-                                    </form>
-                                </Grid>
-                                <Grid item container direction={"column"} xs={4}>
+                <Grid item container direction={"row"} spacing={4}>
+                    <Grid item container direction={"column"} spacing={1} xs={4}>
+                        <Grid item>
+                            <form
+                                onSubmit={async (event) => {
+                                    event.preventDefault();
+                                    setPastGiveaways([]);
+                                    const { contract } = web3state;
+                                    const _handle = event.target.handle.value;
+                                    const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
+                                    setHandle(_handle);
+                                    setProfileID(_profileID);
+                                    const followerResult = await contract.methods.getFollower(_profileID).call();
+                                    const uniqueFollower = [...new Set(Object.values(followerResult))];
+                                    setFollower(uniqueFollower);
+                                    setHasRequestedResults(true);
+                                    setGiveawayResult(null);
+                                    breakTmpWinner = true;
+                                }}
+                            >
+                                <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
                                     <Grid item>
-                                        <Typography variant="body1">
-                                            {hasRequestedResults &&
-                                                (follower.length === 0
-                                                    ? "This profile does not have any followers. Please select a profile with followers to start a raffle."
-                                                    : Object.values(follower).length + " followers:")}
-                                        </Typography>
+                                        <TextField variant="outlined" name="handle" defaultValue="lens" />
                                     </Grid>
-
-                                    <Grid item container direction={"column"}>
-                                        {follower.map((val) => (
-                                            <Grid item key={val}>
-                                                <Typography variant="body1"> {val}</Typography>
-                                            </Grid>
-                                        ))}
+                                    <Grid item>
+                                        <Button variant="contained" type="submit" className="cta-button submit-gif-button" disabled={loadingState !== ""}>
+                                            Show followers
+                                        </Button>
                                     </Grid>
                                 </Grid>
+                            </form>
+                        </Grid>
+                        <Grid item container direction={"column"} xs={4}>
+                            <Grid item>
+                                <Typography variant="body1">
+                                    {hasRequestedResults &&
+                                        (follower.length === 0
+                                            ? "This profile does not have any followers. Please select a profile with followers to start a raffle."
+                                            : Object.values(follower).length + " followers:")}
+                                </Typography>
                             </Grid>
 
-                            <Grid item container direction={"column"} spacing={1} xs={8}>
-                                <Grid item>
-                                    {handle !== "" && follower.length > 0 && (
-                                        <form
-                                            onSubmit={async (event) => {
-                                                event.preventDefault();
-                                                const { web3, accounts, contract } = web3state;
-                                                setGiveawayResult(null);
-                                                setLoadingState("Raffle ongoing...");
-                                                startTmpWinnerAnimation();
-                                                await contract.methods.createGiveaway(profileID).send({
-                                                    from: accounts[0],
-                                                    value: web3.utils.toWei(event.target.amount.value.toString(), "ether"),
-                                                });
-                                            }}
-                                        >
-                                            <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
-                                                <Grid item>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        name="amount"
-                                                        type="number"
-                                                        step="0.0001"
-                                                        defaultValue="0.0001"
-                                                        InputProps={{
-                                                            endAdornment: <InputAdornment position="end">MATIC</InputAdornment>,
-                                                        }}
-                                                    />
-                                                </Grid>
-                                                <Grid item>
-                                                    <Button
-                                                        variant="contained"
-                                                        type="submit"
-                                                        className="cta-button submit-gif-button"
-                                                        disabled={loadingState !== ""}
-                                                    >
-                                                        Start raffle!
-                                                    </Button>
-                                                </Grid>
-                                            </Grid>
-                                        </form>
-                                    )}
-                                </Grid>
-                                <Grid item>
-                                    <Typography variant="body1">
-                                        {giveawayResult ? "" + giveawayResult.winner + " won " + giveawayResult.eth + " MATIC" : tmpWinner}
-                                    </Typography>
-                                </Grid>
-
-                                {giveawayResult === null && (
-                                    <Grid container>
-                                        <Grid
-                                            item
-                                            style={{
-                                                visibility: loadingState === "" ? "hidden" : "visible",
-                                                display: "flex",
-                                                fontSize: 15,
-                                            }}
-                                        >
-                                            <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator" />
-                                        </Grid>
-                                        <Grid item style={{ fontSize: 16 }}>
-                                            {loadingState}
-                                        </Grid>
+                            <Grid item container direction={"column"}>
+                                {follower.map((val) => (
+                                    <Grid item key={val}>
+                                        <Typography variant="body1"> {val}</Typography>
                                     </Grid>
-                                )}
-
-                                {hasRequestedResults && (
-                                    <Grid item container direction={"column"} xs={6}>
-                                        <Grid item>
-                                            <Typography variant="body1">
-                                                {pastGiveaways.length === 0 ? "No past raffle for this profile." : pastGiveaways.length + " past raffles:"}
-                                            </Typography>
-                                        </Grid>
-                                        {pastGiveaways.map((giveaway, i) => (
-                                            <Grid item key={i}>
-                                                <Typography variant="body1">
-                                                    {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
-                                                </Typography>
-                                            </Grid>
-                                        ))}
-                                    </Grid>
-                                )}
+                                ))}
                             </Grid>
                         </Grid>
                     </Grid>
-                </ThemeProvider>
+
+                    <Grid item container direction={"column"} spacing={1} xs={8}>
+                        <Grid item>
+                            {handle !== "" && follower.length > 0 && (
+                                <form
+                                    onSubmit={async (event) => {
+                                        event.preventDefault();
+                                        const { web3, accounts, contract } = web3state;
+                                        setGiveawayResult(null);
+                                        setLoadingState("Raffle ongoing...");
+                                        startTmpWinnerAnimation();
+                                        await contract.methods.createGiveaway(profileID).send({
+                                            from: accounts[0],
+                                            value: web3.utils.toWei(event.target.amount.value.toString(), "ether"),
+                                        });
+                                    }}
+                                >
+                                    <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
+                                        <Grid item>
+                                            <TextField
+                                                variant="outlined"
+                                                name="amount"
+                                                type="number"
+                                                step="0.0001"
+                                                defaultValue="0.0001"
+                                                InputProps={{
+                                                    endAdornment: <InputAdornment position="end">MATIC</InputAdornment>,
+                                                }}
+                                            />
+                                        </Grid>
+                                        <Grid item>
+                                            <Button variant="contained" type="submit" className="cta-button submit-gif-button" disabled={loadingState !== ""}>
+                                                Start raffle!
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+                                </form>
+                            )}
+                        </Grid>
+                        <Grid item>
+                            <Typography variant="body1">
+                                {giveawayResult ? "" + giveawayResult.winner + " won " + giveawayResult.eth + " MATIC" : tmpWinner}
+                            </Typography>
+                        </Grid>
+
+                        {giveawayResult === null && (
+                            <Grid container>
+                                <Grid
+                                    item
+                                    style={{
+                                        visibility: loadingState === "" ? "hidden" : "visible",
+                                        display: "flex",
+                                        fontSize: 15,
+                                    }}
+                                >
+                                    <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator" />
+                                </Grid>
+                                <Grid item style={{ fontSize: 16 }}>
+                                    {loadingState}
+                                </Grid>
+                            </Grid>
+                        )}
+
+                        {hasRequestedResults && (
+                            <Grid item container direction={"column"} xs={6}>
+                                <Grid item>
+                                    <Typography variant="body1">
+                                        {pastGiveaways.length === 0 ? "No past raffle for this profile." : pastGiveaways.length + " past raffles:"}
+                                    </Typography>
+                                </Grid>
+                                {pastGiveaways.map((giveaway, i) => (
+                                    <Grid item key={i}>
+                                        <Typography variant="body1">
+                                            {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
+                                        </Typography>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        )}
+                    </Grid>
+                </Grid>
             </Grid>
         </ThemeProvider>
     );
