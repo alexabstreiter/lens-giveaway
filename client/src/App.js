@@ -1,15 +1,16 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { getWeb3, getWeb3Socket } from "./getWeb3";
+import React, {useEffect, useState, useCallback} from "react";
+import {getWeb3, getWeb3Socket} from "./getWeb3";
 import GiveawayModule from "./contracts/GiveawayModule.json";
-import { BallTriangle } from "react-loader-spinner";
+import {BallTriangle} from "react-loader-spinner";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import Web3 from "web3";
-import { ThemeProvider } from "@mui/styles";
-import { theme } from "./theme.js";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import {theme, themeTest, themeTest2} from "./theme.js";
 import InputAdornment from "@mui/material/InputAdornment";
 import Grid from "@mui/material/Grid";
+import {CssBaseline,} from "@mui/material";
+import Typography from "@mui/material/Typography";
 
 function App() {
     const [profileID, setProfileID] = useState(1);
@@ -29,7 +30,7 @@ function App() {
     });
 
     const initializeEventListener = () => {
-        const { web3, socketContract } = web3state;
+        const {web3, socketContract} = web3state;
         socketContract.events
             .SendPrize({})
             .on("data", async function (event) {
@@ -94,7 +95,7 @@ function App() {
     }, [setWeb3state]);
 
     const getGiveaways = useCallback(async () => {
-        const { contract } = web3state;
+        const {contract} = web3state;
         if (contract !== null) {
             const giveaways = await contract.methods.getGiveaways(profileID).call();
             setPastGiveaways(giveaways);
@@ -129,16 +130,37 @@ function App() {
     }
 
     useEffect(() => {
-        const { contract } = web3state;
+        const {contract} = web3state;
         if (contract !== null) {
             initializeEventListener();
         }
     }, [web3state]);
 
+    const light = {
+        palette: {
+            mode: "light",
+        },
+    };
+
+    const dark = {
+        palette: {
+            mode: "dark",
+        },
+    };
+
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+    // This function is triggered when the Switch component is toggled
+    const changeTheme = () => {
+        setIsDarkTheme(!isDarkTheme);
+    };
+
     return (
         <ThemeProvider theme={theme}>
-            <Grid container className="App" style={{ margin: "16px" }} direction={"column"} xs={12}>
-                <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+            <CssBaseline/>
+            <Grid container className="App" style={{margin: "16px"}} direction={"column"} xs={12}>
+                <link rel="stylesheet"
+                      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"/>
                 <header className="App-header">
                     <ThemeProvider theme={theme}>
                         <Grid container direction={"column"} xs={12} spacing={1}>
@@ -153,7 +175,7 @@ function App() {
                                             onSubmit={async (event) => {
                                                 event.preventDefault();
                                                 setPastGiveaways([]);
-                                                const { contract } = web3state;
+                                                const {contract} = web3state;
                                                 const _handle = event.target.handle.value;
                                                 const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
                                                 setHandle(_handle);
@@ -165,14 +187,17 @@ function App() {
                                                 setGiveawayResult(null);
                                                 breakTmpWinner = true;
                                             }}
-                                            style={{ width: "100%" }}
+                                            style={{width: "100%"}}
                                         >
-                                            <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
+                                            <Grid item container spacing={1} direction={"row"} xs={12}
+                                                  alignItems="center">
                                                 <Grid item>
-                                                    <TextField variant="outlined" name="handle" defaultValue="lens" />
+                                                    <TextField variant="outlined" name="handle"
+                                                               defaultValue="lens"/>
                                                 </Grid>
                                                 <Grid item>
-                                                    <Button variant="contained" type="submit" className="cta-button submit-gif-button">
+                                                    <Button variant="contained" type="submit"
+                                                            className="cta-button submit-gif-button">
                                                         Show followers
                                                     </Button>
                                                 </Grid>
@@ -183,9 +208,9 @@ function App() {
                                         <Grid item>
                                             <Typography variant="body1">
                                                 {hasRequestedResults &&
-                                                    (follower.length === 0
-                                                        ? "This profile does not have any followers. Please select a profile with followers to start a giveaway."
-                                                        : Object.values(follower).length + " followers:")}
+                                                (follower.length === 0
+                                                    ? "This profile does not have any followers. Please select a profile with followers to start a giveaway."
+                                                    : Object.values(follower).length + " followers:")}
                                             </Typography>
                                         </Grid>
 
@@ -205,7 +230,7 @@ function App() {
                                             <form
                                                 onSubmit={async (event) => {
                                                     event.preventDefault();
-                                                    const { web3, accounts, contract } = web3state;
+                                                    const {web3, accounts, contract} = web3state;
                                                     setGiveawayResult(null);
                                                     setLoadingState("Raffle ongoing...");
                                                     startTmpWinnerAnimation();
@@ -215,7 +240,8 @@ function App() {
                                                     });
                                                 }}
                                             >
-                                                <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
+                                                <Grid item container spacing={1} direction={"row"} xs={12}
+                                                      alignItems="center">
                                                     <Grid item>
                                                         <TextField
                                                             variant="outlined"
@@ -224,13 +250,16 @@ function App() {
                                                             step="0.0001"
                                                             defaultValue="0.0001"
                                                             InputProps={{
-                                                                endAdornment: <InputAdornment position="end">MATIC</InputAdornment>,
+                                                                endAdornment: <InputAdornment
+                                                                    position="end">MATIC</InputAdornment>,
                                                             }}
                                                         />
                                                     </Grid>
                                                     <Grid item>
-                                                        <Button variant="contained" type="submit" className="cta-button submit-gif-button">
-                                                            Giveaway to one lucky winner out of all followers of {handle}!
+                                                        <Button variant="contained" type="submit"
+                                                                className="cta-button submit-gif-button">
+                                                            Giveaway to one lucky winner out of all followers
+                                                            of {handle}!
                                                         </Button>
                                                     </Grid>
                                                 </Grid>
@@ -253,9 +282,10 @@ function App() {
                                                     fontSize: 15,
                                                 }}
                                             >
-                                                <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator" />
+                                                <BallTriangle height="40" width="40" color="grey"
+                                                              ariaLabel="loading-indicator"/>
                                             </Grid>
-                                            <Grid item style={{ fontSize: 16 }}>
+                                            <Grid item style={{fontSize: 16}}>
                                                 {loadingState}
                                             </Grid>
                                         </Grid>
@@ -265,19 +295,19 @@ function App() {
                                         <Grid item>
                                             <Typography variant="body1">
                                                 {hasRequestedResults &&
-                                                    (pastGiveaways.length === 0
-                                                        ? "No past giveaway for this profile."
-                                                        : pastGiveaways.length + " past giveaways:")}
+                                                (pastGiveaways.length === 0
+                                                    ? "No past giveaway for this profile."
+                                                    : pastGiveaways.length + " past giveaways:")}
                                             </Typography>
                                         </Grid>
                                         {hasRequestedResults &&
-                                            pastGiveaways.map((giveaway, i) => (
-                                                <Grid item key={i}>
-                                                    <Typography variant="body1">
-                                                        {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
-                                                    </Typography>
-                                                </Grid>
-                                            ))}
+                                        pastGiveaways.map((giveaway, i) => (
+                                            <Grid item key={i}>
+                                                <Typography variant="body1">
+                                                    {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
+                                                </Typography>
+                                            </Grid>
+                                        ))}
                                     </Grid>
                                 </Grid>
                             </Grid>
