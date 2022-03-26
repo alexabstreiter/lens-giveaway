@@ -188,7 +188,12 @@ function App() {
                                                 <TextField variant="outlined" name="handle" defaultValue="lens" />
                                             </Grid>
                                             <Grid item>
-                                                <Button variant="contained" type="submit" className="cta-button submit-gif-button">
+                                                <Button
+                                                    variant="contained"
+                                                    type="submit"
+                                                    className="cta-button submit-gif-button"
+                                                    disabled={loadingState !== ""}
+                                                >
                                                     Show followers
                                                 </Button>
                                             </Grid>
@@ -200,7 +205,7 @@ function App() {
                                         <Typography variant="body1">
                                             {hasRequestedResults &&
                                                 (follower.length === 0
-                                                    ? "This profile does not have any followers. Please select a profile with followers to start a giveaway."
+                                                    ? "This profile does not have any followers. Please select a profile with followers to start a raffle."
                                                     : Object.values(follower).length + " followers:")}
                                         </Typography>
                                     </Grid>
@@ -245,8 +250,13 @@ function App() {
                                                     />
                                                 </Grid>
                                                 <Grid item>
-                                                    <Button variant="contained" type="submit" className="cta-button submit-gif-button">
-                                                        Giveaway to one lucky winner out of all followers of {handle}!
+                                                    <Button
+                                                        variant="contained"
+                                                        type="submit"
+                                                        className="cta-button submit-gif-button"
+                                                        disabled={loadingState !== ""}
+                                                    >
+                                                        Start raffle!
                                                     </Button>
                                                 </Grid>
                                             </Grid>
@@ -281,20 +291,16 @@ function App() {
                                     <Grid item container direction={"column"} xs={6}>
                                         <Grid item>
                                             <Typography variant="body1">
-                                                {hasRequestedResults &&
-                                                    (pastGiveaways.length === 0
-                                                        ? "No past giveaway for this profile."
-                                                        : pastGiveaways.length + " past giveaways:")}
+                                                {pastGiveaways.length === 0 ? "No past raffle for this profile." : pastGiveaways.length + " past raffles:"}
                                             </Typography>
                                         </Grid>
-                                        {hasRequestedResults &&
-                                            pastGiveaways.map((giveaway, i) => (
-                                                <Grid item key={i}>
-                                                    <Typography variant="body1">
-                                                        {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
-                                                    </Typography>
-                                                </Grid>
-                                            ))}
+                                        {pastGiveaways.map((giveaway, i) => (
+                                            <Grid item key={i}>
+                                                <Typography variant="body1">
+                                                    {giveaway.winner} won {giveaway.amount / 1000000000000000000} MATIC
+                                                </Typography>
+                                            </Grid>
+                                        ))}
                                     </Grid>
                                 )}
                             </Grid>
