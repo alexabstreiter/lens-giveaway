@@ -147,7 +147,9 @@ function App() {
                     </Grid>
                     <Grid item container direction={"row"} spacing={0} alignItems="center" xs={6} justifyContent="flex-end">
                         <Grid item>
-                            <Typography variant="body">Used technologies:</Typography>
+                            <Typography variant="body" style={{ paddingRight: "8px" }}>
+                                Used technologies:{" "}
+                            </Typography>
                         </Grid>
                         <Grid item>
                             <Box
@@ -281,14 +283,17 @@ function App() {
                                 </form>
                             )}
                         </Grid>
-                        <Grid item>
-                            <Typography variant="body1">
-                                {giveawayResult ? "" + giveawayResult.winner + " won " + giveawayResult.eth + " MATIC" : tmpWinner}
-                            </Typography>
-                        </Grid>
 
-                        {giveawayResult === null && (
-                            <Grid container>
+                        {(giveawayResult !== null || loadingState !== "") && (
+                            <Grid item>
+                                <Typography variant="body1">
+                                    {giveawayResult ? "" + giveawayResult.winner + " won " + giveawayResult.eth + " MATIC" : ""}
+                                </Typography>
+                            </Grid>
+                        )}
+
+                        {giveawayResult === null && loadingState !== "" && (
+                            <Grid container direction={"row"} alignItems="center">
                                 <Grid
                                     item
                                     style={{
@@ -299,8 +304,10 @@ function App() {
                                 >
                                     <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator" />
                                 </Grid>
-                                <Grid item style={{ fontSize: 16 }}>
-                                    {loadingState}
+                                <Grid item>
+                                    <Typography variant="body1">
+                                        {loadingState} {tmpWinner}{" "}
+                                    </Typography>
                                 </Grid>
                             </Grid>
                         )}
