@@ -215,7 +215,7 @@ function App() {
                             >
                                 <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
                                     <Grid item>
-                                        <TextField variant="outlined" name="handle" defaultValue="lens" />
+                                        <TextField variant="outlined" name="handle" placeholder="Profile handle" />
                                     </Grid>
                                     <Grid item>
                                         <Button variant="contained" type="submit" className="cta-button submit-gif-button" disabled={loadingState !== ""}>
