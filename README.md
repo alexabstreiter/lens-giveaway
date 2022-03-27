@@ -1,5 +1,5 @@
 # Lens Raffle
-A raffle module for the lense protocol.
+A raffle module for the lens protocol.
 
 ## Installation:
 Run the following commands to deploy the contract (you need enough MATIC tokens in your account):
