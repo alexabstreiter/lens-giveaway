@@ -16,6 +16,7 @@ import Confetti from "react-confetti";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import FormLabel from "@mui/material/FormLabel";
 
 function App() {
     const [profileID, setProfileID] = useState(0);
@@ -205,7 +206,7 @@ function App() {
                 </Grid>
 
                 <Grid item container direction={"row"} spacing={4}>
-                    <Grid item container direction={"column"} spacing={1} xs={4}>
+                    <Grid item container direction={"column"} spacing={1} xs={4} style={{ marginTop: "42px" }}>
                         <Grid item>
                             <form
                                 onSubmit={async (event) => {
@@ -259,12 +260,20 @@ function App() {
                     </Grid>
 
                     <Grid item container direction={"column"} spacing={1} xs={8}>
-                        <Grid item>
-                            <RadioGroup row defaultValue={"FT"}>
-                                <FormControlLabel value="FT" control={<Radio />} label="Fungible tokens" />
-                                <FormControlLabel value="NFT" disabled control={<Radio />} label="NFT" />
-                            </RadioGroup>
-                        </Grid>
+                        {handle !== "" && follower.length > 0 && (
+                            <Grid item container direction={"row"} alignItems={"center"} spacing={2}>
+                                <Grid item>
+                                    <FormLabel>Type:</FormLabel>
+                                </Grid>
+                                <Grid item>
+                                    <RadioGroup row defaultValue={"FT"}>
+                                        <FormControlLabel value="FT" control={<Radio />} label="Fungible tokens" />
+                                        <FormControlLabel value="NFT" disabled control={<Radio />} label="NFT" />
+                                    </RadioGroup>
+                                </Grid>
+                            </Grid>
+                        )}
+
                         <Grid item>
                             {handle !== "" && follower.length > 0 && (
                                 <form
@@ -286,7 +295,7 @@ function App() {
                                                 variant="outlined"
                                                 name="amount"
                                                 type="number"
-                                                defaultValue="0.0001"
+                                                defaultValue="0.5"
                                                 InputProps={{
                                                     endAdornment: <InputAdornment position="end">MATIC</InputAdornment>,
                                                 }}
