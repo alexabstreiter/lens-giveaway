@@ -22,7 +22,6 @@ contract LensHub {
 
 contract GiveawayModule is VRFConsumerBase {
     event SendPrize(address indexed _from, address indexed _to, uint256 _value);
-    event TestDone(bytes32 requestId, uint256 randomness);
 
     LensHub _lensHub;
     mapping(uint256 => Giveaway[]) _giveaways;
@@ -34,11 +33,9 @@ contract GiveawayModule is VRFConsumerBase {
     uint256 internal prizeOfOngoingRaffle;
     address internal donorOfOngoingRaffle;
 
-    uint256 public randomResult;
-
     struct Giveaway {
         address donor;
-        uint256 profileID; // this can be removed since it is the key of the mapping
+        uint256 profileID; 
         uint256 amount;
         address winner;
     }
@@ -57,20 +54,10 @@ contract GiveawayModule is VRFConsumerBase {
         prizeOfOngoingRaffle = 0;
     }
 
-    /** 
-     * Requests randomness 
-     */
-    function getRandomNumber() public returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) > fee, "Not enough LINK - fill contract with faucet");
-        return requestRandomness(keyHash, fee);
-    }
-
     /**
      * Callback function used by VRF Coordinator
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        randomResult = randomness;
-        emit TestDone(requestId, randomness);
         uint256 profileID = profileIDOfOngoingRaffle;
         address winner = _getRandomFollowerAddress(profileID, randomness);
         address donor = donorOfOngoingRaffle;
@@ -130,9 +117,6 @@ contract GiveawayModule is VRFConsumerBase {
         profileIDOfOngoingRaffle = profileID;
         prizeOfOngoingRaffle = msg.value;
         donorOfOngoingRaffle = msg.sender;
-        bytes32 requestId2;
-        emit TestDone(requestId2, 3);
-        //uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp)));
         return requestRandomness(keyHash, fee);
     }
 
