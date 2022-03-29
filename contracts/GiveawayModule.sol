@@ -15,6 +15,9 @@ contract LensHub {
     function getProfileIdByHandle(string calldata handle) external view returns (uint256) {return 0;}
 
     function getHandle(uint256 profileId) external view returns (string memory) {return "";}
+
+    function follow(uint256[] calldata profileIds, bytes[] calldata datas) external {}
+
 }
 
 contract GiveawayModule is VRFConsumerBase {
@@ -26,7 +29,7 @@ contract GiveawayModule is VRFConsumerBase {
 
     bytes32 internal keyHash;
     uint256 internal fee;
-    
+
     uint256 internal profileIDOfOngoingRaffle;
     uint256 internal prizeOfOngoingRaffle;
     address internal donorOfOngoingRaffle;
@@ -41,13 +44,15 @@ contract GiveawayModule is VRFConsumerBase {
     }
 
     constructor() VRFConsumerBase(
-            0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, // VRF Coordinator
-            0x326C977E6efc84E512bB9C30f76E30c160eD06FB  // LINK Token
-        ) {
-        address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367; // lens hub proxy on mumbai testnet
+        0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, // VRF Coordinator
+        0x326C977E6efc84E512bB9C30f76E30c160eD06FB  // LINK Token
+    ) {
+        address watch_addr = 0xd7B3481De00995046C7850bCe9a5196B7605c367;
+        // lens hub proxy on mumbai testnet
         _lensHub = LensHub(watch_addr);
         keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
-        fee = 0.0001 * 10 ** 18; // 0.0001 LINK
+        fee = 0.0001 * 10 ** 18;
+        // 0.0001 LINK
         profileIDOfOngoingRaffle = 0;
         prizeOfOngoingRaffle = 0;
     }
@@ -68,7 +73,7 @@ contract GiveawayModule is VRFConsumerBase {
         emit TestDone(requestId, randomness);
         uint256 profileID = profileIDOfOngoingRaffle;
         address winner = _getRandomFollowerAddress(profileID, randomness);
-        address donor = donorOfOngoingRaffle; 
+        address donor = donorOfOngoingRaffle;
         uint256 prize = prizeOfOngoingRaffle;
         Giveaway memory giveaway = Giveaway(donor, profileID, prize, winner);
         (bool sent, bytes memory data) = payable(address(winner)).call{value : prize}("");

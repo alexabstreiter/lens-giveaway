@@ -1,20 +1,21 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { getWeb3, getWeb3Socket } from "./getWeb3";
+import React, {useEffect, useState, useCallback} from "react";
+import {getWeb3, getWeb3Socket} from "./getWeb3";
 import GiveawayModule from "./contracts/GiveawayModule.json";
-import { BallTriangle } from "react-loader-spinner";
+import {BallTriangle} from "react-loader-spinner";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Web3 from "web3";
-import { ThemeProvider } from "@mui/material/styles";
-import { theme } from "./theme.js";
+import {ThemeProvider} from "@mui/material/styles";
+import {theme} from "./theme.js";
 import InputAdornment from "@mui/material/InputAdornment";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import { CssBaseline } from "@mui/material";
+import {CssBaseline} from "@mui/material";
 import Typography from "@mui/material/Typography";
+import Confetti from 'react-confetti'
 
 function App() {
-    const [profileID, setProfileID] = useState(1);
+    const [profileID, setProfileID] = useState(0);
     const [handle, setHandle] = useState("");
     const [follower, setFollower] = useState([]);
     const [pastGiveaways, setPastGiveaways] = useState([]);
@@ -30,22 +31,7 @@ function App() {
         socketContract: null,
     });
 
-    const initializeEventListener = () => {
-        const { web3, socketContract } = web3state;
-        socketContract.events
-            .SendPrize({})
-            .on("data", async function (event) {
-                console.log("Event received: " + JSON.stringify(event)); // same results as the optional callback above
-                setGiveawayResult({
-                    winner: event.returnValues._to,
-                    eth: web3.utils.fromWei(event.returnValues._value),
-                });
-                setLoadingState("");
-                setPastGiveaways([]);
-                await getGiveaways();
-            })
-            .on("error", console.error);
-    };
+    const { width, height } = useWindowSize()
 
     useEffect(() => {
         async function initializeWeb3() {
@@ -96,9 +82,11 @@ function App() {
     }, [setWeb3state]);
 
     const getGiveaways = useCallback(async () => {
-        const { contract } = web3state;
+        const {contract} = web3state;
         if (contract !== null) {
-            const giveaways = await contract.methods.getGiveaways(profileID).call();
+            var giveaways = await contract.methods.getGiveaways(profileID).call();
+            giveaways = Array.from(giveaways);
+            giveaways.reverse();
             setPastGiveaways(giveaways);
         }
     }, [web3state, profileID]);
@@ -131,23 +119,45 @@ function App() {
     }
 
     useEffect(() => {
-        const { contract } = web3state;
+        const initializeEventListener = () => {
+            const {web3, socketContract} = web3state;
+            socketContract.events
+                .SendPrize({})
+                .on("data", async function (event) {
+                    if (profileID == 0) {
+                        return;
+                    }
+                    console.log("Event received: " + JSON.stringify(event)); // same results as the optional callback above
+                    setGiveawayResult({
+                        winner: event.returnValues._to,
+                        eth: web3.utils.fromWei(event.returnValues._value),
+                    });
+                    setLoadingState("");
+                    //setPastGiveaways([]);
+                    await getGiveaways();
+                })
+                .on("error", console.error);
+        };
+
+        const {contract} = web3state;
         if (contract !== null) {
             initializeEventListener();
         }
-    }, [web3state]);
+    }, [web3state, setGiveawayResult, getGiveaways, setLoadingState]);
+
 
     return (
         <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Grid container direction={"column"} xs={12} spacing={1} style={{ padding: "16px" }}>
+            <CssBaseline/>
+            <Grid container direction={"column"} xs={12} spacing={1} style={{padding: "16px"}}>
                 <Grid item container direction={"row"} spacing={4} justifyContent="space-between">
                     <Grid item xs={4}>
                         <Typography variant="h3">LensRaffle</Typography>
                     </Grid>
-                    <Grid item container direction={"row"} spacing={0} alignItems="center" xs={6} justifyContent="flex-end">
+                    <Grid item container direction={"row"} spacing={0} alignItems="center" xs={6}
+                          justifyContent="flex-end">
                         <Grid item>
-                            <Typography variant="body" style={{ paddingRight: "8px" }}>
+                            <Typography variant="body" style={{paddingRight: "8px"}}>
                                 Used technologies:{" "}
                             </Typography>
                         </Grid>
@@ -157,8 +167,8 @@ function App() {
                                 sx={{
                                     height: 50,
                                     width: 50,
-                                    maxHeight: { xs: 233, md: 167 },
-                                    maxWidth: { xs: 350, md: 250 },
+                                    maxHeight: {xs: 233, md: 167},
+                                    maxWidth: {xs: 350, md: 250},
                                 }}
                                 alt="Logo"
                                 src="https://icodrops.com/wp-content/uploads/2022/02/LensProtocol_logo-1.jpeg"
@@ -170,8 +180,8 @@ function App() {
                                 sx={{
                                     height: 50,
                                     width: 90,
-                                    maxHeight: { xs: 233, md: 167 },
-                                    maxWidth: { xs: 350, md: 250 },
+                                    maxHeight: {xs: 233, md: 167},
+                                    maxWidth: {xs: 350, md: 250},
                                 }}
                                 alt="Logo"
                                 src="https://block-builders.de/wp-content/uploads/2022/01/Chainlink-678x381.png"
@@ -183,8 +193,8 @@ function App() {
                                 sx={{
                                     height: 50,
                                     width: 90,
-                                    maxHeight: { xs: 233, md: 167 },
-                                    maxWidth: { xs: 350, md: 250 },
+                                    maxHeight: {xs: 233, md: 167},
+                                    maxWidth: {xs: 350, md: 250},
                                 }}
                                 alt="Logo"
                                 src="https://forkast.news/wp-content/uploads/2021/12/polygon-1260x709.jpg"
@@ -199,26 +209,29 @@ function App() {
                             <form
                                 onSubmit={async (event) => {
                                     event.preventDefault();
-                                    setPastGiveaways([]);
-                                    const { contract } = web3state;
+                                    const {contract} = web3state;
                                     const _handle = event.target.handle.value;
                                     const _profileID = await contract.methods.getProfileIdByHandle(_handle).call();
-                                    setHandle(_handle);
-                                    setProfileID(_profileID);
-                                    const followerResult = await contract.methods.getFollower(_profileID).call();
-                                    const uniqueFollower = [...new Set(Object.values(followerResult))];
-                                    setFollower(uniqueFollower);
-                                    setHasRequestedResults(true);
-                                    setGiveawayResult(null);
+                                    if (_profileID !== profileID) {
+                                        setPastGiveaways([]);
+                                        setHandle(_handle);
+                                        setProfileID(_profileID);
+                                        const followerResult = await contract.methods.getFollower(_profileID).call();
+                                        const uniqueFollower = [...new Set(Object.values(followerResult))];
+                                        setFollower(uniqueFollower);
+                                        setHasRequestedResults(true);
+                                        setGiveawayResult(null);
+                                    }
                                     breakTmpWinner = true;
                                 }}
                             >
                                 <Grid item container spacing={1} direction={"row"} xs={12} alignItems="center">
                                     <Grid item>
-                                        <TextField variant="outlined" name="handle" placeholder="Profile handle" />
+                                        <TextField variant="outlined" name="handle" placeholder="Profile handle"/>
                                     </Grid>
                                     <Grid item>
-                                        <Button variant="contained" type="submit" className="cta-button submit-gif-button" disabled={loadingState !== ""}>
+                                        <Button variant="contained" type="submit"
+                                                className="cta-button submit-gif-button" disabled={loadingState !== ""}>
                                             Show followers
                                         </Button>
                                     </Grid>
@@ -229,9 +242,9 @@ function App() {
                             <Grid item>
                                 <Typography variant="body1">
                                     {hasRequestedResults &&
-                                        (follower.length === 0
-                                            ? "This profile does not have any followers. Please select a profile with followers to start a raffle."
-                                            : Object.values(follower).length + " followers:")}
+                                    (follower.length === 0
+                                        ? "This profile does not have any followers. Please select a profile with followers to start a raffle."
+                                        : Object.values(follower).length + " followers:")}
                                 </Typography>
                             </Grid>
 
@@ -251,7 +264,7 @@ function App() {
                                 <form
                                     onSubmit={async (event) => {
                                         event.preventDefault();
-                                        const { web3, accounts, contract } = web3state;
+                                        const {web3, accounts, contract} = web3state;
                                         setGiveawayResult(null);
                                         setLoadingState("Raffle ongoing...");
                                         startTmpWinnerAnimation();
@@ -267,15 +280,20 @@ function App() {
                                                 variant="outlined"
                                                 name="amount"
                                                 type="number"
-                                                step="0.0001"
                                                 defaultValue="0.0001"
                                                 InputProps={{
                                                     endAdornment: <InputAdornment position="end">MATIC</InputAdornment>,
                                                 }}
+                                                inputProps={{
+                                                    min: "0.0001",
+                                                    step: "0.0001"
+                                                }}
                                             />
                                         </Grid>
                                         <Grid item>
-                                            <Button variant="contained" type="submit" className="cta-button submit-gif-button" disabled={loadingState !== ""}>
+                                            <Button variant="contained" type="submit"
+                                                    className="cta-button submit-gif-button"
+                                                    disabled={loadingState !== ""}>
                                                 Start raffle!
                                             </Button>
                                         </Grid>
@@ -302,7 +320,7 @@ function App() {
                                         fontSize: 15,
                                     }}
                                 >
-                                    <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator" />
+                                    <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator"/>
                                 </Grid>
                                 <Grid item>
                                     <Typography variant="body1">
@@ -331,8 +349,39 @@ function App() {
                     </Grid>
                 </Grid>
             </Grid>
+            {giveawayResult ? <Confetti
+                width={width}
+                height={height}
+            /> : ''}
         </ThemeProvider>
     );
+}
+
+// Hook
+function useWindowSize() {
+    // Initialize state with undefined width/height so server and client renders match
+    // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
+    const [windowSize, setWindowSize] = useState({
+        width: undefined,
+        height: undefined,
+    });
+    useEffect(() => {
+        // Handler to call on window resize
+        function handleResize() {
+            // Set window width/height to state
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        }
+        // Add event listener
+        window.addEventListener("resize", handleResize);
+        // Call handler right away so state gets updated with initial window size
+        handleResize();
+        // Remove event listener on cleanup
+        return () => window.removeEventListener("resize", handleResize);
+    }, []); // Empty array ensures that effect is only run on mount
+    return windowSize;
 }
 
 export default App;
