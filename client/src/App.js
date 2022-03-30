@@ -252,7 +252,14 @@ function App() {
                             <Grid item container direction={"column"}>
                                 {follower.map((val) => (
                                     <Grid item key={val}>
-                                        <Typography variant="body1"> {val}</Typography>
+                                        {giveawayResult !== null && loadingState === "" && giveawayResult.winner === val ? (
+                                            <Typography variant="body1" style={{ fontWeight: 900 }}>
+                                                {" "}
+                                                {val}
+                                            </Typography>
+                                        ) : (
+                                            <Typography variant="body1"> {val}</Typography>
+                                        )}
                                     </Grid>
                                 ))}
                             </Grid>
@@ -317,7 +324,7 @@ function App() {
 
                         {(giveawayResult !== null || loadingState !== "") && (
                             <Grid item>
-                                <Typography variant="body1">
+                                <Typography variant="h6" style={{ fontWeight: "bold" }}>
                                     {giveawayResult ? "" + giveawayResult.winner + " won " + giveawayResult.eth + " MATIC" : ""}
                                 </Typography>
                             </Grid>
@@ -336,7 +343,7 @@ function App() {
                                     <BallTriangle height="40" width="40" color="grey" ariaLabel="loading-indicator" />
                                 </Grid>
                                 <Grid item>
-                                    <Typography variant="body1">
+                                    <Typography variant="h6" style={{ fontWeight: "bold" }}>
                                         {loadingState} {tmpWinner}{" "}
                                     </Typography>
                                 </Grid>
